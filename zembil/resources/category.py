@@ -21,4 +21,4 @@ class Category(Resource):
         category = CategoryModel(name=args['name'])
         db.session.add(category)
         db.session.commit()
-        return category_schema.dump(result), 201
+        return category_schema.dump(category), 201
