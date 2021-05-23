@@ -23,9 +23,13 @@ def create_app(config_class=Config):
 
     api.add_resource(User, '/api/users', '/api/users/<int:id>')
     api.add_resource(Authorize, '/api/users/auth')
-    api.add_resource(Category, '/api/categories', '/api/categories/<int:id>')
-    api.add_resource(Location, '/api/locations', '/api/locations/<int:id>')
+    api.add_resource(Categories, '/api/categories')
+    api.add_resource(category, '/api/categories/<int:id>')
+    api.add_resource(Locations, '/api/locations')
+    api.add_resource(Location, '/api/locations/<int:id>')
+    api.add_resource(Shops, '/api/shops')
     api.add_resource(Shop, '/api/shops/<int:id>')
-    api.add_resource(ShopList, '/api/shops')
+    api.add_resource(ShopLikes, '/api/shoplikes')
+    api.add_resource(ShopLike, '/api/shoplikes/<int:id>')
 
     return app

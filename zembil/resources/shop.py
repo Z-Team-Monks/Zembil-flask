@@ -1,4 +1,4 @@
-from flask_restful import Resource, fields, marshal_with, reqparse, abort
+from flask_restful import Resource, fields, reqparse, abort
 from zembil import db
 from zembil.models import ShopModel
 from zembil.schemas import ShopSchema
@@ -27,7 +27,7 @@ shop_put_arguments.add_argument('locationid', type=int, help="Location Id", requ
 shop_put_arguments.add_argument('description', type=str, help="Description", required=False)
 
 
-class ShopList(Resource):
+class Shops(Resource):
     def get(self):
         result = ShopModel.query.all()
         return shops_schema.dump(result)

@@ -22,7 +22,9 @@ shoplike_update_arguments.add_argument("downvoted", type=bool, required=False)
 class ShopLikes(Resource):
     def get(self):
         shoplike = ShopLikeModel.query.all()
-        return shoplikes_schema.dump(shoplike)
+        if shoplike:
+            return shoplikes_schema.dump(shoplike)
+        return abort(404, "No Shop Likes Found")
     
     @user_token_required
     def post(self):

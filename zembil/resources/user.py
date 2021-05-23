@@ -15,6 +15,11 @@ user_post_arguments.add_argument('password', type=str, help="password is Require
 user_post_arguments.add_argument('role', type=str, help="role is Required", required=True)
 user_post_arguments.add_argument('phone', type=str, help="role is Required", required=True)
 
+user_update_arguments = reqparse.RequestParser()
+shoplike_post_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
+user_update_arguments.add_argument("username", type=str, required=False)
+user_update_arguments.add_argument("phone", type=str, required=False)
+
 user_auth_arguments = reqparse.RequestParser()
 user_auth_arguments.add_argument('username', type=str, help="Username is Required", required=True)
 user_auth_arguments.add_argument('password', type=str, help="password is Required", required=True)
@@ -34,8 +39,19 @@ class User(Resource):
         db.session.commit()
         return user_schema.dump(user), 201
 
+    @user_token_required
     def patch(self):
-        pass
+        args = user_post_arguments.parse_args()
+        user_id, _ = get_user_from_token(args['Authorization'])
+        existing = UserModel.query.filter_by(id=user_id).first()
+        if existing:
+            if args['username']:
+                existing.username = args['username']
+            if args['phone']:
+                existing.phone = args['phone']
+            db.session.commit() 
+            return user_schema.dump()
+        return abort(403, message="User not authorized!")
 
 class Authorize(Resource):
     def post(self):

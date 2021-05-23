@@ -121,7 +121,9 @@ class ShopLikeModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
+    upvoted = db.Column(db.Boolean, nullable=False, default=True)
+    downvoted = db.Column(db.Boolean, nullable=False, default=False)
     __table_args__ = (db.UniqueConstraint('user_id', 'shop_id'), )
-    
+
     user = db.relationship('UserModel', back_populates='shoplikes')
     shop = db.relationship('ShopModel', back_populates='shoplikes')
