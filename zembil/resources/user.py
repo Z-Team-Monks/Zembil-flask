@@ -1,9 +1,10 @@
 import jwt
 from flask import current_app
 from flask_restful import Resource, fields, marshal_with, reqparse, abort
-from zembil import bcrypt, db
+from zembil import db
 from zembil.models import UserModel
 from zembil.schemas import UserSchema
+from zembil.common.util import admin_token_required
 
 user_schema = UserSchema()
 
@@ -19,6 +20,7 @@ user_auth_arguments.add_argument('username', type=str, help="Username is Require
 user_auth_arguments.add_argument('password', type=str, help="password is Required", required=True)
 
 class User(Resource):
+    @admin_token_required
     def get(self, id):
         result = UserModel.query.filter_by(id=id).first()
         if not result:

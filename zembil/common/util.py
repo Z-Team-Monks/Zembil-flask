@@ -17,22 +17,6 @@ def user_token_required(fun):
         return fun(*args, **kwargs)
     return decorated
 
-def shop_user_token_required(fun):
-    @wraps(fun)
-    def decorated(*args, **kwargs):
-        try:
-            headers = request.headers
-            bearer = headers.get('Authorization')    # Bearer YourTokenHere
-            token = bearer.split()[1]  # YourTokenHere
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms="HS256")
-            if data['role'] != 'shop_owner':
-                return {'message': 'Higher privilege required!'}, 403
-        except:
-            return {'message': 'Unauthorized user!'}, 403
-        
-        return fun(*args, **kwargs)
-    return decorated
-
 def admin_token_required(fun):
     @wraps(fun)
     def decorated(*args, **kwargs):

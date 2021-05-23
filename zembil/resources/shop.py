@@ -1,11 +1,8 @@
-import jwt
-import json
-from flask import current_app
 from flask_restful import Resource, fields, marshal_with, reqparse, abort
 from zembil import db
-from zembil.models import ShopModel, UserModel, LocationModel, CategoryModel
-from zembil.common.util import user_token_required, shop_user_token_required
+from zembil.models import ShopModel
 from zembil.schemas import ShopSchema
+from zembil.common.util import user_token_required
 
 shop_schema = ShopSchema()
 shops_schema = ShopSchema(many=True)
@@ -60,7 +57,19 @@ class ShopList(Resource):
         if user_id:
             shop = ShopModel.query.filter_by(id=args['id'])
             if user_id == shop.user_id:
-                pass
+                if args['buildingname']:
+                    shop.building_name = args['buildingname']
+                if args['phonenumber1']:
+                    shop.phone_number1 = args['phonenumber1']
+                if args['phonenumber2']:
+                    shop.phone_number2 = args['phonenumber2']
+                if args['categoryid']:
+                    shop.category_id = args['categoryid']
+                if args['locationid']:
+                    shop.location_id = args['locationid']
+                if args['description']:
+                    shop.description = args['description']
+                db.commit()
             else:
                 abort(403, message="User is not owner of this shop")
 
