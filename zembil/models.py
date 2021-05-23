@@ -51,11 +51,10 @@ class ProductModel(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    building_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
     condition = db.Column(db.Integer, nullable=False)
-    image = db.Column(db.String(100), nullable=False)
+    image = db.Column(db.String(100), nullable=True)
     delivery_available = db.Column(db.Boolean, nullable=False, default=False)
     discount = db.Column(db.Float, nullable=False, default=0.0)
     product_count = db.Column(db.Integer, nullable=False, default=1)
@@ -101,6 +100,7 @@ class ReviewModel(db.Model):
     user_review = db.Column(db.Text, nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id'), )
+
     user = db.relationship('UserModel', back_populates='reviews')
     product = db.relationship('ProductModel', back_populates='reviews')
 
@@ -111,6 +111,7 @@ class WishListModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id'), )
+
     user = db.relationship('UserModel', back_populates='wishlists')
     product = db.relationship('ProductModel', back_populates='wishlists')
 
@@ -121,5 +122,6 @@ class ShopLikeModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
     __table_args__ = (db.UniqueConstraint('user_id', 'shop_id'), )
+    
     user = db.relationship('UserModel', back_populates='shoplikes')
     shop = db.relationship('ShopModel', back_populates='shoplikes')
