@@ -2,7 +2,7 @@ from flask_restful import Resource, fields, reqparse, abort
 from zembil import db
 from zembil.models import ShopLikeModel
 from zembil.schemas import ShopLikeSchema
-from zembil.common.util import user_token_required
+from zembil.common.util import user_token_required, get_user_from_token
 
 shoplike_schema = ShopLikeSchema()
 shoplikes_schema = ShopLikeSchema(many=True)
