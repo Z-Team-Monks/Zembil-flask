@@ -1,8 +1,8 @@
 from flask_restful import Resource, fields, reqparse, abort
+from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import ShopLikeModel
 from zembil.schemas import ShopLikeSchema
-from zembil.common.util import user_token_required, get_user_from_token
 
 shoplike_schema = ShopLikeSchema()
 shoplikes_schema = ShopLikeSchema(many=True)
@@ -26,10 +26,10 @@ class ShopLikes(Resource):
             return shoplikes_schema.dump(shoplike)
         return abort(404, "No Shop Likes Found")
     
-    @user_token_required
+    @jwt_required()
     def post(self):
         args = shoplike_post_arguments.parse_args()
-        user_id, _ = get_user_from_token(args['Authorization'])
+        user_id = get_jwt_identity()
         existing = ShopLikeModel.query.filter_by(user_id=user_id).first()
         if not existing:
             if args['downvoted']:
@@ -39,7 +39,7 @@ class ShopLikes(Resource):
                     upvoted=False,
                     downvoted=True
                 )
-            else if args['upvoted']:
+            elif args['upvoted']:
                 shoplike = ShopLikeModel(
                     user_id=user_id,
                     shop_id=args['shopid'],
@@ -57,16 +57,16 @@ class ShopLikes(Resource):
         return abort(409, message="User already upvoted or downvoted")
 
     
-    @user_token_required
+    @jwt_required()
     def patch(self):
         args = shoplike_update_arguments.parse_args()
-        user_id, _ = get_user_from_token(args['Authorization'])
+        user_id = get_jwt_identity()
         existing = ShopLikeModel.query.filter_by(user_id=user_id).first()
         if existing:
             if args['downvoted']:
                 shoplike.upvoted = False
                 shoplike.downvoted = True
-            else if args['upvoted']:
+            elif args['upvoted']:
                 shoplike.upvoted = True
                 shoplike.downvoted = False
             else:

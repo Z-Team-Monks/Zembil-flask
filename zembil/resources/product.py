@@ -1,8 +1,8 @@
 from flask_restful import Resource, fields, reqparse, abort
+from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import ProductModel, UserModel
 from zembil.schemas import ProductSchema
-from zembil.common.util import user_token_required
 
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
@@ -27,10 +27,10 @@ class Products(Resource):
         products = ProductModel.query.all()
         return products_schema.dump(products)
     
-    @user_token_required
+    @jwt_required()
     def post(self):
         args = product_post_arguments.parse_args()
-        user_id, _ = get_user_from_token(args['Authorization'])
+        user_id = get_jwt_identity()
         shop_owner = UserModel.query.filter_by(id=user_id).first()
         if shop_owner:
             product = ProductModel(

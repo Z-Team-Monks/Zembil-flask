@@ -1,8 +1,8 @@
 from flask_restful import Resource, fields, reqparse, abort
+from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import ShopModel
 from zembil.schemas import ShopSchema
-from zembil.common.util import user_token_required
 
 shop_schema = ShopSchema()
 shops_schema = ShopSchema(many=True)
@@ -32,10 +32,10 @@ class Shops(Resource):
         result = ShopModel.query.all()
         return shops_schema.dump(result)
 
-    @user_token_required
+    @jwt_required()
     def post(self):
         args = shop_post_arguments.parse_args()
-        user_id, _ = get_user_from_token(args['Authorization'])
+        user_id = get_jwt_identity()
         if user_id:
             shop = ShopModel(
                 user_id=user_id, 
@@ -50,10 +50,10 @@ class Shops(Resource):
         else:
             return abort(404, message="User Doesn't Exist")
 
-    @user_token_required
+    @jwt_required()
     def put(self):
         args = shop_put_arguments.parse_args()
-        user_id, _ = get_user_from_token(args['Authorization'])
+        user_id = get_jwt_identity()
         if user_id:
             shop = ShopModel.query.filter_by(id=args['id'])
             if user_id == shop.user_id:
