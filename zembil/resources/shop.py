@@ -3,12 +3,12 @@ from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import ShopModel
 from zembil.schemas import ShopSchema
+from zembil.common.util import cleanNullTerms
 
 shop_schema = ShopSchema()
 shops_schema = ShopSchema(many=True)
 
 shop_post_arguments = reqparse.RequestParser()
-shop_post_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
 shop_post_arguments.add_argument('buildingname', type=str, help="Building name is required", required=True)
 shop_post_arguments.add_argument('phonenumber1', type=str, help="Phone Number 1", required=True)
 shop_post_arguments.add_argument('phonenumber2', type=str, help="Phone Number 2", required=False)
@@ -17,7 +17,6 @@ shop_post_arguments.add_argument('locationid', type=int, help="Location Id", req
 shop_post_arguments.add_argument('description', type=str, help="Description", required=False)
 
 shop_put_arguments = reqparse.RequestParser()
-shop_put_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
 shop_put_arguments.add_argument("id", type=int, help="Shop id is required", required=True)
 shop_put_arguments.add_argument('buildingname', type=str, help="Building name is required", required=False)
 shop_put_arguments.add_argument('phonenumber1', type=str, help="Phone Number 1", required=False)
@@ -51,27 +50,14 @@ class Shops(Resource):
             return abort(404, message="User Doesn't Exist")
 
     @jwt_required()
-    def put(self):
-        args = shop_put_arguments.parse_args()
+    def patch(self):
+        args = cleanNullTerms(shop_put_arguments.parse_args())
         user_id = get_jwt_identity()
         if user_id:
-            shop = ShopModel.query.filter_by(id=args['id'])
-            if user_id == shop.user_id:
-                if args['buildingname']:
-                    shop.building_name = args['buildingname']
-                if args['phonenumber1']:
-                    shop.phone_number1 = args['phonenumber1']
-                if args['phonenumber2']:
-                    shop.phone_number2 = args['phonenumber2']
-                if args['categoryid']:
-                    shop.category_id = args['categoryid']
-                if args['locationid']:
-                    shop.location_id = args['locationid']
-                if args['description']:
-                    shop.description = args['description']
-                db.commit()
-            else:
-                abort(403, message="User is not owner of this shop")
+            shop = ShopModel.query.filter_by(id=args['id']).update(args)
+            db.commit()
+        else:
+            abort(403, message="User is not owner of this shop")
 
 class Shop(Resource):
     def get(self, id):

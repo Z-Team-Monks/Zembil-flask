@@ -32,8 +32,11 @@ def create_app(config_class=Config):
     from zembil.resources.shop import Shop, Shops
     from zembil.resources.category import Category, Categories
     from zembil.resources.location import Location, Locations
-    from zembil.resources.shoplike import ShopLike, ShopLikes
+    from zembil.resources.brand import Brand, Brands
+    from zembil.resources.shoplike import ShopLike
     from zembil.resources.review import Reviews, Review, ProductReviews
+    from zembil.resources.wishlist import WishLists
+    from zembil.resources.product import Product, Products
 
     api.add_resource(Users, '/api/users')
     api.add_resource(User, '/api/users/<int:id>')
@@ -45,9 +48,13 @@ def create_app(config_class=Config):
     api.add_resource(Location, '/api/locations/<int:id>')
     api.add_resource(Shops, '/api/shops')
     api.add_resource(Shop, '/api/shops/<int:id>')
-    api.add_resource(ShopLikes, '/api/shops/<int:id>/likes')
+    api.add_resource(ShopLike, '/api/shops/<int:id>/likes')
     api.add_resource(Reviews, '/api/products/reviews')
     api.add_resource(Review, '/api/products/reviews/<int:id>')
     api.add_resource(ProductReviews, '/api/products/<int:product_id>/reviews/')
+    api.add_resource(Products, '/api/products')
+    api.add_resource(Product, '/api/products/<int:id>')
+    api.add_resource(Brand, '/api/brands/<int:id>')
+    api.add_resource(Brands, '/api/brands')
 
     return app

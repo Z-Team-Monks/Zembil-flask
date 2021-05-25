@@ -9,7 +9,6 @@ wishlists_schema = WishListSchema(many=True)
 
 wishlist_post_arguments = reqparse.RequestParser() # prodcut_id, user_Id
 wishlist_post_arguments.add_argument('productid', type=int, help="Product id is required", required=True)
-wishlist_post_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
 
 
 class WishLists(Resource):

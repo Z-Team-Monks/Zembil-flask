@@ -17,7 +17,7 @@ shoplike_update_arguments.add_argument("shopid", type=int, help="Product Id is r
 shoplike_update_arguments.add_argument("upvoted", type=bool, required=False)
 shoplike_update_arguments.add_argument("downvoted", type=bool, required=False)
 
-class ShopLikes(Resource):
+class ShopLike(Resource):
     def get(self):
         shoplike = ShopLikeModel.query.all()
         if shoplike:

@@ -5,6 +5,7 @@ from flask_jwt_extended import ( create_access_token, get_jwt,
 from zembil import db
 from zembil.models import UserModel, RevokedTokenModel
 from zembil.schemas import UserSchema
+from zembil.common.util import cleanNullTerms
 
 user_schema = UserSchema()
 
@@ -33,16 +34,9 @@ class Users(Resource):
 
     @jwt_required()
     def patch(self):
-        args = user_post_arguments.parse_args()
+        args = cleanNullTerms(user_post_arguments.parse_args())
         user_id = get_jwt_identity()
-        existing = UserModel.query.filter_by(id=user_id).first()
-        if existing:
-            if args['username']:
-                existing.username = args['username']
-            if args['phone']:
-                existing.phone = args['phone']
-            db.session.commit() 
-            return user_schema.dump()
+        existing = UserModel.query.filter_by(id=user_id).update(args)
         return abort(403, message="User not authorized!")
 
 class User(Resource):

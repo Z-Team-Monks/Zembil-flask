@@ -40,14 +40,14 @@ class Reviews(Resource):
 
 class Review(Resource):
     def get(self, id):
-        review = ReviewModel.query.filter_by(id=id).first_or_none()
+        review = ReviewModel.query.filter_by(id=id).first()
         if review:
             return review_schema.dump(review)
         return abort(404, "Review doesn't exist!")
     
 class ProductReviews(Resource):
     def get(self, product_id):
-        product = ProductModel.query.filter_by(id=product_id).first_or_none()
+        product = ProductModel.query.filter_by(id=product_id).first()
         if product:
             return product_reviews_schema.dump(product)
         return abort(404, "Reviews for this product doesn't exist!")
