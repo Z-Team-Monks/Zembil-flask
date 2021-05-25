@@ -53,7 +53,7 @@ class ProductModel(db.Model):
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
-    condition = db.Column(db.Integer, nullable=False)
+    condition = db.Column(db.String(30), nullable=False)
     image = db.Column(db.String(100), nullable=True)
     delivery_available = db.Column(db.Boolean, nullable=False, default=False)
     discount = db.Column(db.Float, nullable=False, default=0.0)
