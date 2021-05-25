@@ -1,7 +1,7 @@
 from flask import current_app
 from flask_restful import Resource, fields, marshal_with, reqparse, abort
-from flask_jwt_extended import ( create_access_token, get_jwt, 
-    create_refresh_token, jwt_required, get_jwt_identity)
+from flask_jwt_extended import ( create_access_token, get_jwt,
+                            jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import UserModel, RevokedTokenModel
 from zembil.schemas import UserSchema

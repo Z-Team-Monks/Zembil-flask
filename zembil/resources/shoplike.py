@@ -8,13 +8,11 @@ shoplike_schema = ShopLikeSchema()
 shoplikes_schema = ShopLikeSchema(many=True)
 
 shoplike_post_arguments = reqparse.RequestParser()
-shoplike_post_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
 shoplike_post_arguments.add_argument("shopid", type=int, help="Product Id is required", required=True)
 shoplike_post_arguments.add_argument("upvoted", type=bool, required=False)
 shoplike_post_arguments.add_argument("downvoted", type=bool, required=False)
 
 shoplike_update_arguments = reqparse.RequestParser()
-shoplike_update_arguments.add_argument('Authorization', type=str, help="Token is required", required=True, location='headers')
 shoplike_update_arguments.add_argument("shopid", type=int, help="Product Id is required", required=True)
 shoplike_update_arguments.add_argument("upvoted", type=bool, required=False)
 shoplike_update_arguments.add_argument("downvoted", type=bool, required=False)
@@ -75,18 +73,3 @@ class ShopLikes(Resource):
             db.session.commit()
             return shoplike_schema.dump(shoplike), 200
         return abort(404, message="User haven't upvoted or downvoted")
-
-
-class ShopLike(Resource):
-    def get(self, id):
-        shoplike = ShopLikeModel.query.filter_by(id=id).first()
-        if shoplike:
-            return shoplike_schema.dump(shoplike)
-        return abort(404, message="Shop like not found!")
-
-    
-
-        
-
-    
-    

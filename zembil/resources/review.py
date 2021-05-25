@@ -1,11 +1,12 @@
 from flask_restful import Resource, fields, reqparse, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
-from zembil.models import ReviewModel
-from zembil.schemas import ReviewSchema
+from zembil.models import ReviewModel, ProductModel
+from zembil.schemas import ReviewSchema, ProductReviewSchema
 
 review_schema = ReviewSchema()
 reviews_schema = ReviewSchema(many=True)
+product_reviews_schema = ProductReviewSchema()
 
 review_post_arguments = reqparse.RequestParser() # product_id, rating, user_review
 review_post_arguments.add_argument('productid', type=int, help="Product id is required", required=True)
@@ -17,7 +18,7 @@ class Reviews(Resource):
     def get(self):
         reviews = ReviewSchema.query.all()
         if reviews:
-            return reviews_schema.dump(reviews)
+            return reviews_schema.dump(reviews), 200
         return abort(404, "No Reviews found yet!")
     
     @jwt_required()
@@ -37,8 +38,17 @@ class Reviews(Resource):
             return review_schema.dump(review), 201
         return abort(409, "User already rated this product")
 
-
+class Review(Resource):
+    def get(self, id):
+        review = ReviewModel.query.filter_by(id=id).first_or_none()
+        if review:
+            return review_schema.dump(review)
+        return abort(404, "Review doesn't exist!")
     
-
-
+class ProductReviews(Resource):
+    def get(self, product_id):
+        product = ProductModel.query.filter_by(id=product_id).first_or_none()
+        if product:
+            return product_reviews_schema.dump(product)
+        return abort(404, "Reviews for this product doesn't exist!")
 

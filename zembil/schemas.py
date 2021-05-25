@@ -48,7 +48,7 @@ class ShopProductSchema(ma.Schema):
     user = ma.Nested(UserSchema)
     category = ma.Nested(CategorySchema)
     location = ma.Nested(LocationSchema)
-    products = ma.Nested(ProductSchema)
+    products = ma.List(ma.Nested(ProductSchema))
 
 class ReviewSchema(ma.Schema):
     class Meta:
@@ -59,19 +59,17 @@ class ReviewSchema(ma.Schema):
 
 class ProductReviewSchema(ma.Schema):
     class Meta:
-        fields = ("id", "brand", "name", "date", "building_name", 
-        "description", "category", "price", "condition", "image", 
+        fields = ("id", "name", "date", "building_name", 
+        "description", "price", "condition", "image", 
         "delivery_available", "discount", "product_count", "reviews")
         model = ProductModel
-    brand = ma.Nested(BrandSchema)
-    category = ma.Nested(CategorySchema)
-    reviews = ma.Nested(ReviewSchema)
+    reviews = ma.List(ma.Nested(ReviewSchema()))
 
 class CategoryShopsSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "shops")
         model = CategoryModel
-    shops = ma.Nested(ShopSchema)
+    shops = ma.List(ma.Nested(ShopSchema))
 
 class WishListSchema(ma.Schema):
     class Meta:
@@ -84,7 +82,7 @@ class UserWishListSchema(ma.Schema):
     class Meta:
         fields = ("id", "username", "email", "role", "phone", "wishlists")
         model = UserModel
-    wishlists = ma.Nested(WishListSchema)
+    wishlists = ma.List(ma.Nested(WishListSchema))
 
 class ShopLikeSchema(ma.Schema):
     class Meta:
@@ -99,5 +97,5 @@ class TotalShopLikes(ma.Schema):
         "phone_number2", "category", "location", "description")
         model = ShopLikeModel
     user = ma.Nested(UserSchema)
-    shoplikes = ma.Nested(ShopLikeSchema)
+    shoplikes = ma.List(ma.Nested(ShopLikeSchema))
 
