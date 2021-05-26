@@ -97,7 +97,7 @@ class ReviewModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    user_review = db.Column(db.Text, nullable=True)
+    review_text = db.Column(db.Text, nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id'), )
 
@@ -121,8 +121,6 @@ class ShopLikeModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
-    upvoted = db.Column(db.Boolean, nullable=False, default=True)
-    downvoted = db.Column(db.Boolean, nullable=False, default=False)
     __table_args__ = (db.UniqueConstraint('user_id', 'shop_id'), )
 
     user = db.relationship('UserModel', back_populates='shoplikes')

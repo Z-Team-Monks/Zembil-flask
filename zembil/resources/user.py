@@ -1,7 +1,8 @@
-from flask import current_app
-from flask_restful import Resource, fields, marshal_with, reqparse, abort
+from flask import current_app, request
+from flask_restful import Resource, fields, abort, reqparse
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
+from marshmallow import ValidationError
 from zembil import db
 from zembil.models import UserModel, RevokedTokenModel
 from zembil.schemas import UserSchema
@@ -9,35 +10,22 @@ from zembil.common.util import cleanNullTerms
 
 user_schema = UserSchema()
 
-user_post_arguments = reqparse.RequestParser()
-user_post_arguments.add_argument('username', type=str, help="Username is Required", required=True)
-user_post_arguments.add_argument('email', type=str, help="Email is Required", required=True)
-user_post_arguments.add_argument('password', type=str, help="password is Required", required=True)
-user_post_arguments.add_argument('role', type=str, help="role is Required", required=True)
-user_post_arguments.add_argument('phone', type=str, help="role is Required", required=True)
-
-user_update_arguments = reqparse.RequestParser()
-user_update_arguments.add_argument("username", type=str, required=False)
-user_update_arguments.add_argument("phone", type=str, required=False)
-
 user_auth_arguments = reqparse.RequestParser()
-user_auth_arguments.add_argument('username', type=str, help="Username is Required", required=True)
-user_auth_arguments.add_argument('password', type=str, help="password is Required", required=True)
+user_auth_arguments.add_argument('username', type=str, help="Username", required=True)
+user_auth_arguments.add_argument('password', type=str, help="Password", required=True)
 
 class Users(Resource):
     def post(self):
-        args = user_post_arguments.parse_args()
-        user = UserModel(username=args['username'], email=args['email'], password=args['password'], role=args['role'], phone=args['phone'])
+        data = request.get_json()
+        try:
+            args = user_schema.load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role=args['role'], phone=args['phone'])
         db.session.add(user)
         db.session.commit()
         return user_schema.dump(user), 201
 
-    @jwt_required()
-    def patch(self):
-        args = cleanNullTerms(user_post_arguments.parse_args())
-        user_id = get_jwt_identity()
-        existing = UserModel.query.filter_by(id=user_id).update(args)
-        return abort(403, message="User not authorized!")
 
 class User(Resource):
     @jwt_required()
@@ -46,6 +34,20 @@ class User(Resource):
         if not result:
             abort(404, message="User not found!")
         return user_schema.dump(result)
+
+    @jwt_required()
+    def patch(self, id):
+        data = request.get_json()
+        try:
+            args = UserSchema(partial=True).load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        args = cleanNullTerms(args)
+        user_id = get_jwt_identity()
+        if user_id == id:
+            existing = UserModel.query.filter_by(id=id).update(args)
+        return abort(403, message="User not authorized!")
+
 
 class Authorize(Resource):
     def post(self):

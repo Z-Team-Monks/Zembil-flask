@@ -1,5 +1,6 @@
 from flask_restful import Resource, fields, reqparse, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
+from marshmallow import ValidationError
 from zembil import db
 from zembil.models import ReviewModel, ProductModel
 from zembil.schemas import ReviewSchema, ProductReviewSchema
@@ -9,8 +10,8 @@ reviews_schema = ReviewSchema(many=True)
 product_reviews_schema = ProductReviewSchema()
 
 review_post_arguments = reqparse.RequestParser() # product_id, rating, user_review
-review_post_arguments.add_argument('productid', type=int, help="Product id is required", required=True)
-review_post_arguments.add_argument('rating', type=float, required=True, help="Rating is required")
+review_post_arguments.add_argument('productid', type=int, help="Product id", required=True)
+review_post_arguments.add_argument('rating', type=float, required=True, help="Rating")
 review_post_arguments.add_argument('userreview', type=str, required=False)
 
 

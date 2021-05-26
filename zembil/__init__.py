@@ -4,6 +4,7 @@ from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 from zembil.config import Config
 
 
@@ -33,9 +34,9 @@ def create_app(config_class=Config):
     from zembil.resources.category import Category, Categories
     from zembil.resources.location import Location, Locations
     from zembil.resources.brand import Brand, Brands
-    from zembil.resources.shoplike import ShopLike
+    from zembil.resources.shoplike import ShopLike, ShopLikes
     from zembil.resources.review import Reviews, Review, ProductReviews
-    from zembil.resources.wishlist import WishLists
+    from zembil.resources.wishlist import WishLists, WishList
     from zembil.resources.product import Product, Products
 
     api.add_resource(Users, '/api/users')
@@ -48,13 +49,18 @@ def create_app(config_class=Config):
     api.add_resource(Location, '/api/locations/<int:id>')
     api.add_resource(Shops, '/api/shops')
     api.add_resource(Shop, '/api/shops/<int:id>')
-    api.add_resource(ShopLike, '/api/shops/<int:id>/likes')
+    api.add_resource(ShopLikes, '/api/shops/<int:shopid>/likes')
+    api.add_resource(ShopLike, '/api/shops/<int:shopid>/likes/<int:id>')
     api.add_resource(Reviews, '/api/products/reviews')
     api.add_resource(Review, '/api/products/reviews/<int:id>')
-    api.add_resource(ProductReviews, '/api/products/<int:product_id>/reviews/')
+    api.add_resource(ProductReviews, '/api/products/<int:product_id>/reviews')
     api.add_resource(Products, '/api/products')
     api.add_resource(Product, '/api/products/<int:id>')
     api.add_resource(Brand, '/api/brands/<int:id>')
     api.add_resource(Brands, '/api/brands')
+    api.add_resource(WishLists, '/api/cart')
+    api.add_resource(WishList, '/api/cart/<int:id>')
+
+    CORS(app)
 
     return app

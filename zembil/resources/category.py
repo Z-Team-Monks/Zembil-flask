@@ -1,4 +1,5 @@
-from flask_restful import Resource, fields, marshal_with, reqparse, abort
+from flask import request
+from flask_restful import Resource, abort
 from zembil import db
 from zembil.models import CategoryModel
 from zembil.schemas import CategorySchema
@@ -6,17 +7,17 @@ from zembil.schemas import CategorySchema
 category_schema = CategorySchema()
 categories_schema = CategorySchema(many=True)
 
-category_post_arguments = reqparse.RequestParser()
-category_post_arguments.add_argument('name', type=str, help="Name required", required=True)
-
-
 class Categories(Resource):
     def get(self):
         result = CategoryModel.query.all()
         return categories_schema.dump(result)
     
     def post(self):
-        args = category_post_arguments.parse_args()
+        data = request.get_json()
+        try:
+            args = category_schema.load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
         category = CategoryModel(name=args['name'])
         db.session.add(category)
         db.session.commit()

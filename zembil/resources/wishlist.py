@@ -1,4 +1,5 @@
-from flask_restful import Resource, fields, reqparse, abort
+from flask import request
+from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import WishListModel
@@ -7,13 +8,8 @@ from zembil.schemas import WishListSchema
 wishlist_schema = WishListSchema()
 wishlists_schema = WishListSchema(many=True)
 
-wishlist_post_arguments = reqparse.RequestParser() # prodcut_id, user_Id
-wishlist_post_arguments.add_argument('productid', type=int, help="Product id is required", required=True)
-
-
 class WishLists(Resource):
     def get(self):
-        args = wishlist_post_arguments.parse_args()    
         user_id = get_jwt_identity()
         wishlists = WishListModel.query.filter_by(user_id=user_id)
         if wishlists:
@@ -22,12 +18,16 @@ class WishLists(Resource):
 
     @jwt_required()
     def post(self):
-        args = wishlist_post_arguments.parse_args()
+        data = request.get_json()
+        try:
+            args = wishlist_schema.load(data, partial=("product_id",))
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
         user_id = get_jwt_identity()
         existing = WishListModel.query.filter_by(user_id=user_id, product_id=args['productid']).first()
         if not existing:
             wishlist = WishListModel(
-                product_id=args['productid'],
+                product_id=args['product_id'],
                 user_id=user_id,
             )
             db.session.add(wishlist)
@@ -38,16 +38,14 @@ class WishLists(Resource):
 
 class WishList(Resource):
     def get(self, id):
-        args = wishlist_post_arguments.parse_args()    
         user_id = get_jwt_identity()
         wishlist = WishListModel.query.filter_by(id=id).first()
         if wishlist:
-            return wishlist_schema.dump(wishlists)
+            return wishlist_schema.dump(wishlist)
         return abort(404, "No wishlist item found for this user")
 
     @jwt_required()
     def delete(self, id):
-        args = wishlist_post_arguments.parse_args()    
         user_id = get_jwt_identity()
         existing = WishListModel.query.filter_by(id=id, user_id=user_id).first()
         if existing:

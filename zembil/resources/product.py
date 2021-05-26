@@ -1,39 +1,14 @@
-from flask_restful import Resource, fields, reqparse, abort
+from flask import request
+from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
+from marshmallow import ValidationError
 from zembil import db
-from zembil.models import ProductModel, UserModel
+from zembil.models import ProductModel, ShopModel
 from zembil.schemas import ProductSchema
 from zembil.common.util import cleanNullTerms
 
-
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
-
-product_post_arguments = reqparse.RequestParser()
-product_post_arguments.add_argument("shopid", type=int, help="Shop id is required", required=True)
-product_post_arguments.add_argument("brandid", type=int, help="Brand id is required", required=False)
-product_post_arguments.add_argument("categoryid", type=int, help="Brand id is required", required=False)
-product_post_arguments.add_argument("name", type=str, help="Product name is required", required=True)
-product_post_arguments.add_argument("description", type=str, help="Description", required=False)
-product_post_arguments.add_argument("price", type=float, help="Price is required", required=True)
-product_post_arguments.add_argument("condition", type=str, help="Condition", required=False)
-product_post_arguments.add_argument("imageurl", type=str, help="Image", required=False)
-product_post_arguments.add_argument("deliveryavailable", type=bool, help="Delivery Available", required=False)
-product_post_arguments.add_argument("discount", type=float, help="Discount", required=False)
-product_post_arguments.add_argument("productcount", type=int, help="Product Count", required=False)
-
-product_put_arguments = reqparse.RequestParser()
-product_put_arguments.add_argument("brandid", type=int, help="Brand id", required=False, location='json')
-product_put_arguments.add_argument("categoryid", type=int, help="Brand id", required=False, location='json')
-product_put_arguments.add_argument("name", type=str, help="Product name", required=False, location='json')
-product_put_arguments.add_argument("description", type=str, help="Description", required=False, location='json')
-product_put_arguments.add_argument("price", type=float, help="Price", required=False, location='json')
-product_put_arguments.add_argument("condition", type=str, help="Condition", required=False, location='json')
-product_put_arguments.add_argument("imageurl", type=str, help="Image", required=False, location='json')
-product_put_arguments.add_argument("deliveryavailable", type=bool, help="Delivery Available", required=False, location='json')
-product_put_arguments.add_argument("discount", type=float, help="Discount", required=False, location='json')
-product_put_arguments.add_argument("productcount", type=int, help="Product Count", required=False, location='json')
-
 
 class Products(Resource):
     def get(self):
@@ -42,23 +17,16 @@ class Products(Resource):
     
     @jwt_required()
     def post(self):
-        args = product_post_arguments.parse_args()
+        data = request.get_json()
+        try:
+            args = product_schema.load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        args = cleanNullTerms(args)
         user_id = get_jwt_identity()
-        shop_owner = UserModel.query.filter_by(id=user_id).first()
-        if shop_owner:
-            product = ProductModel(
-                shop_id=args["shopid"],
-                brand_id=args["brandid"],
-                category_id=args["categoryid"],
-                name=args["name"],
-                description=args["description"],
-                price=args["price"],
-                condition=args["condition"],
-                image=args["imageurl"],
-                delivery_available=args["deliveryavailable"],
-                discount=args["discount"],
-                product_count=args["productcount"]
-            )
+        shop_owner = ShopModel.query.filter_by(user_id=user_id).first()
+        if shop_owner and args:
+            product = ProductModel(**args)
             db.session.add(product)
             db.session.commit()
             return product_schema.dump(product), 201
@@ -74,7 +42,12 @@ class Product(Resource):
 
     @jwt_required()
     def patch(self, id):
-        args = cleanNullTerms(product_put_arguments.parse_args())
+        data = request.get_json()
+        try:
+            args = product_schema.load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        args = cleanNullTerms(args)
         existing = ProductModel.query.get(id)
         if existing and args:
             product = ProductModel.query.filter_by(id=id).update(args)
