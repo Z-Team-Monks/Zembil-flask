@@ -3,7 +3,7 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
-from zembil.models import ShopModel
+from zembil.models import ShopModel, CategoryModel
 from zembil.schemas import ShopSchema
 from zembil.common.util import cleanNullTerms
 
@@ -61,9 +61,14 @@ class Shop(Resource):
         abort(404, message="Shop doesn't exist!")
 
 class SearchShop(Resource):
-    def get(self, name):
+    def get(self):
+        name = request.args.get('name')
+        category = request.args.get('category')
         shops = ShopModel.query
-        shops = shops.filter(ShopModel.name.like('%' + name + '%'))
+        if name:
+            shops = shops.filter(ShopModel.name.ilike('%' + name + '%'))
+        if category:
+            shops = shops.filter(CategoryModel.name.ilike('%' + category + '%'))
         shops = shops.order_by(ShopModel.name).all()
         if shops:
             return products_schema.dump(products)

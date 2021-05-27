@@ -38,8 +38,8 @@ api_v1.add_resource(Review, '/products/<int:product_id>/reviews/<int:id>')
 api_v1.add_resource(Products, '/products')
 api_v1.add_resource(Product, '/products/<int:id>')
 
-api_v1.add_resource(SearchProduct, '/search/products?name=<string:name>')
-api_v1.add_resource(SearchShop, '/search/shops?name=<string:name>')
+api_v1.add_resource(SearchProduct, '/search/products')
+api_v1.add_resource(SearchShop, '/search/shops')
 
 api_v1.add_resource(Brand, '/brands/<int:id>')
 api_v1.add_resource(Brands, '/brands')
