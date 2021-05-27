@@ -1,10 +1,9 @@
 from flask import Blueprint
 from flask_restful import Api
-from zembil.resources.v1.user import User, Users, Authorize, UserLogout
+from zembil.resources.v1.user import User, Users, Authorize, UserLogout, AdminUser
 from zembil.resources.v1.shop import Shop, Shops, SearchShop
 from zembil.resources.v1.category import Category, Categories
 from zembil.resources.v1.location import Location, Locations
-from zembil.resources.v1.brand import Brand, Brands
 from zembil.resources.v1.shoplike import ShopLike, ShopLikes
 from zembil.resources.v1.review import Reviews, Review
 from zembil.resources.v1.wishlist import WishLists, WishList
@@ -20,6 +19,7 @@ api_v1.add_resource(Users, '/users')
 api_v1.add_resource(User, '/users/<int:id>')
 api_v1.add_resource(Authorize, '/auth')
 api_v1.add_resource(UserLogout, '/users/logout')
+api_v1.add_resource(AdminUser, '/admin')
 
 api_v1.add_resource(Categories, '/categories')
 api_v1.add_resource(Category, '/categories/<int:id>')
@@ -41,8 +41,5 @@ api_v1.add_resource(Product, '/products/<int:id>')
 api_v1.add_resource(SearchProduct, '/search/products')
 api_v1.add_resource(SearchShop, '/search/shops')
 
-api_v1.add_resource(Brand, '/brands/<int:id>')
-api_v1.add_resource(Brands, '/brands')
-
-api_v1.add_resource(WishLists, '/users/<int:user_id>/cart/<int:id>')
-api_v1.add_resource(WishList, '/users/<int:user_id>/cart')
+api_v1.add_resource(WishList, '/cart/<int:id>')
+api_v1.add_resource(WishLists, '/cart')

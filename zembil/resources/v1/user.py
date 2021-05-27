@@ -22,7 +22,7 @@ class Users(Resource):
             args = user_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role=args['role'], phone=args['phone'])
+        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role='user', phone=args['phone'])
         db.session.add(user)
         db.session.commit()
         return user_schema.dump(user), 201
@@ -65,6 +65,24 @@ class Authorize(Resource):
                 additional_claims=additional_claims)
             return {'token': token}
         return abort(401, message="Incorrect Username or password")
+
+
+class AdminUser(Resource):
+    @jwt_required()
+    def post(self):
+        role = get_jwt()['role']
+        if role == 'user':
+            abort(403, message="Admin Privilege Required!")
+        data = request.get_json()
+        try:
+            args = user_schema.load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role='admin', phone=args['phone'])
+        db.session.add(user)
+        db.session.commit()
+        return user_schema.dump(user), 201
+
 
 class UserLogout(Resource):
     @jwt_required()

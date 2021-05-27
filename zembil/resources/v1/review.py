@@ -16,7 +16,7 @@ class Reviews(Resource):
         product = ProductModel.query.filter_by(id=product_id).first()
         if product:
             return product_reviews_schema.dump(product)
-        return abort(404, "Reviews for this product doesn't exist!")
+        return abort(404, message="No one reviewed yet!")
     
     @jwt_required()
     def post(self, product_id):
@@ -37,20 +37,20 @@ class Reviews(Resource):
             db.session.add(review)
             db.session.commit()
             return review_schema.dump(review), 201
-        return abort(409, "User already rated this product")
+        return abort(409, message="User already rated this product")
 
 class Review(Resource):
     def get(self, product_id, id):
         review = ReviewModel.query.filter_by(id=id).first()
         if review:
             return review_schema.dump(review)
-        return abort(404, "Review doesn't exist!")
+        return abort(404, message="Review doesn't exist!")
 
-    def delete(self, id):
+    def delete(self, product_id, id):
         review = ReviewModel.query.get(id)
         if review:
             db.session.delete(review)
             db.session.commit()
-            return 200
-        return abort(404, "Review doesn't exist!")
+            return {"message": "Successfull"}, 204
+        return abort(404, message="Review doesn't exist!")
 

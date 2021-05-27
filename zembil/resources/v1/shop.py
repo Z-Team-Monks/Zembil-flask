@@ -3,7 +3,7 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
-from zembil.models import ShopModel, CategoryModel
+from zembil.models import UserModel, ShopModel, CategoryModel
 from zembil.schemas import ShopSchema
 from zembil.common.util import cleanNullTerms
 
@@ -23,6 +23,7 @@ class Shops(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         user_id = get_jwt_identity()
+        user = UserModel.query.get(user_id)
         if user:
             args = cleanNullTerms(args)
             shop = ShopModel(
@@ -49,6 +50,8 @@ class Shop(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         args = cleanNullTerms(args)
+        if not args:
+            abort(400, message="Empty json body")
         user = get_jwt_identity()
         existing = ShopModel.query.get(id)
         if existing and user.id == existing.user_id:

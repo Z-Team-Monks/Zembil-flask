@@ -47,7 +47,7 @@ class ProductModel(db.Model):
     __tablename__ = "product"
     id = db.Column(db.Integer, primary_key=True)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
-    brand_id = db.Column(db.Integer, db.ForeignKey('brand.id'), nullable=True)
+    brand = db.Column(db.String, nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -61,7 +61,6 @@ class ProductModel(db.Model):
     __table_args__ = (db.UniqueConstraint('shop_id', 'name'), )
 
     shop = db.relationship('ShopModel', back_populates='products')
-    brand = db.relationship('BrandModel', back_populates='products')
     wishlists = db.relationship('WishListModel', back_populates='product')
     reviews = db.relationship('ReviewModel', back_populates='product')
     category = db.relationship('CategoryModel', back_populates='products')
@@ -73,13 +72,6 @@ class CategoryModel(db.Model):
 
     shops = db.relationship('ShopModel', back_populates='category')
     products = db.relationship('ProductModel', back_populates='category')
-
-class BrandModel(db.Model):
-    __tablename__ = "brand"   
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False, unique=True)
-
-    products = db.relationship('ProductModel', back_populates='brand')
 
 class LocationModel(db.Model):
     __tablename__ = "location"

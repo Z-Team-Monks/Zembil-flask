@@ -35,7 +35,7 @@ class ShopLike(Resource):
         if existing and existing.user_id == user_id:
             db.session.delete(existing)
             db.session.commit()
-            return 200
+            return {"message": "Successfull"}, 204
         if existing:
             abort(401, "Can't delete!")
         abort(404, "Doesn't exist")

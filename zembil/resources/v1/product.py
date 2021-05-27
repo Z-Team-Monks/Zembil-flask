@@ -31,7 +31,7 @@ class Products(Resource):
             db.session.add(product)
             db.session.commit()
             return product_schema.dump(product), 201
-        abort(403, message="Unauthorized access")
+        abort(403, message="Shop doesn't belong to this user")
         
 
 class Product(Resource):
@@ -45,7 +45,7 @@ class Product(Resource):
     def patch(self, id):
         data = request.get_json()
         try:
-            args = product_schema.load(data)
+            args = ProductSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
         args = cleanNullTerms(args)
@@ -55,7 +55,7 @@ class Product(Resource):
             db.session.commit()
             return product_schema.dump(ProductModel.query.get(id)), 200
         if not existing:
-            abort(404, message="Product doesn't exist!") 
+            abort(404, message="Product doesn't exist!")
         abort(400, message="Empty body was given")
 
 class ShopProducts(Resource):
@@ -78,4 +78,4 @@ class SearchProduct(Resource):
         products = products.order_by(ProductModel.name).all()
         if products:
             return products_schema.dump(products)
-        abort(404, message="Product doesn't exist!")        
+        abort(404, message="Product doesn't exist!")
