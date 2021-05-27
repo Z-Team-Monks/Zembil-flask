@@ -49,20 +49,19 @@ class CategorySchema(ma.Schema):
 
 class ShopSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user", "category_id", "location_id", "building_name", "phone_number1", 
-        "phone_number2", "category", "location", "description")
+        fields = ("id", "user_id", "location_id", "category_id", "building_name", "phone_number1", 
+        "phone_number2", "category", "description")
         model = ShopModel
         ordered = True
-    category_id = fields.Integer(required=True, data_key="categoryid", load_only=True)
+    user_id = fields.Integer(data_key="userid")
+    location_id = fields.Integer(data_key="locationid")
+    category_id = fields.Integer(required=True, data_key="categoryid")
     category = fields.Pluck(CategorySchema, "name", dump_only=True)
-    location_id = fields.Integer(required=True, data_key="locationid", load_only=True)
     building_name = fields.String(required=True, data_key="buildingname")
     phone_number1 = fields.String(required=False, data_key="phonenumber1")
     phone_number2 = fields.String(required=False, data_key="phonenumber2")
     description = fields.String(required=True, validate=validate.Length(5))
 
-    user = ma.Nested(UserSchema)
-    location = ma.Nested(LocationSchema)
 
     @validates("phone_number1")
     @validates("phone_number2")
@@ -73,17 +72,25 @@ class ShopSchema(ma.Schema):
             msg = u"Invalid mobile number."
             raise ValidationError(msg)
 
+class RatingSchema(ma.Schema):
+    class Meta:
+        fields = ("ratingcount", "totalrating")
+        ordered = True
+    totalrating = fields.Float(dump_only=True)
+    ratingcount = fields.Integer(dump_only=True)
+
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop", "shop_id", "brand", "name", "date", 
+        fields = ("id", "shop_id", "brand", "name", "date", 
         "description", "category", "category_id", "price", "condition", "image", 
         "delivery_available", "discount", "product_count")
         model = ProductModel
         ordered = True
+    id = fields.Integer()
     name = fields.String(required=True)
     date = fields.DateTime(dump_only=True)
     brand = fields.String(required=False, data_key="brand")
-    shop_id = fields.Integer(required=True, data_key="shopid", load_only=True)
+    shop_id = fields.Integer(required=True, data_key="shopid")
     category_id = fields.Integer(required=True, data_key="categoryid", load_only=True)
     category = fields.Pluck(CategorySchema, 'name', dump_only=True)
     description = fields.String(required=True, validate=validate.Length(5))
@@ -92,9 +99,7 @@ class ProductSchema(ma.Schema):
     image = fields.String(required=False, data_key="imageurl")
     delivery_available = fields.Boolean(required=False, data_key="deliveryavailable")
     discount = fields.Float(required=False, validate=lambda n: n >= 0)
-    product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productcount")    
-
-    shop = ma.Nested(ShopSchema)
+    product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productcount")
 
     @validates("image")
     def validate_url(self, value):
@@ -115,7 +120,8 @@ class ShopProductSchema(ma.Schema):
         model = ShopModel
         ordered = True
     id = fields.Integer(data_key="shopid")
-    products = ma.List(ma.Nested(ProductSchema(exclude=["shop"])))
+    products = ma.List(ma.Nested(ProductSchema))
+
 
 class ReviewSchema(ma.Schema):
     class Meta:
@@ -129,11 +135,10 @@ class ReviewSchema(ma.Schema):
 
 class ProductReviewSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "date", "building_name", 
-        "description", "price", "condition", "image", 
-        "delivery_available", "discount", "product_count", "reviews")
+        fields = ("id", "reviews")
         model = ProductModel
         ordered = True
+    id = fields.Integer(data_key="productid")
     reviews = ma.Nested(ReviewSchema(many=True))
 
 class CategoryShopsSchema(ma.Schema):

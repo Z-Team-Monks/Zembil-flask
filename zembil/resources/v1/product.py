@@ -2,9 +2,10 @@ from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
+from sqlalchemy import func
 from zembil import db
-from zembil.models import ProductModel, ShopModel, CategoryModel
-from zembil.schemas import ProductSchema, ShopProductSchema
+from zembil.models import ProductModel, ShopModel, CategoryModel, ReviewModel
+from zembil.schemas import ProductSchema, ShopProductSchema, RatingSchema
 from zembil.common.util import cleanNullTerms
 
 product_schema = ProductSchema()
@@ -32,13 +33,26 @@ class Products(Resource):
             db.session.commit()
             return product_schema.dump(product), 201
         abort(403, message="Shop doesn't belong to this user")
-        
 
 class Product(Resource):
     def get(self, id):
-        product = ProductModel.query.filter_by(id=id).first()
+        product = ProductModel.query.get(id)
         if product:
-            return product_schema.dump(product)
+            totalrating = ReviewModel.query.with_entities(
+                                    func.sum(ReviewModel.rating).label("sum")
+                                    ).filter_by(product_id=id).first()[0]
+            ratingcount = ReviewModel.query.filter_by(product_id=id).count()
+            if not totalrating:
+                totalrating = 0.0
+            data = product_schema.dump(product)
+            rating = RatingSchema().dump({
+                'totalrating': totalrating,
+                'ratingcount': ratingcount
+            })
+            return {
+                "product": data,
+                "rating": rating
+            }
         abort(404, message="Product doesn't exist!") 
 
     @jwt_required()

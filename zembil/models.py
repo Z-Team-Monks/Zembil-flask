@@ -36,9 +36,10 @@ class ShopModel(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    is_approved = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('UserModel', back_populates='shops')
-    location = db.relationship('LocationModel', back_populates='shop')
+    location = db.relationship('LocationModel', back_populates='shop', cascade="all,delete")
     category = db.relationship('CategoryModel', back_populates='shops')
     products = db.relationship('ProductModel', back_populates='shop')
     shoplikes = db.relationship('ShopLikeModel', back_populates='shop')
