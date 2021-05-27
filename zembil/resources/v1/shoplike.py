@@ -2,18 +2,18 @@ from flask import request
 from flask_restful import Resource, fields, reqparse, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
-from zembil.models import ShopLikeModel
-from zembil.schemas import ShopLikeSchema
+from zembil.models import ShopLikeModel, ShopModel
+from zembil.schemas import ShopLikeSchema, TotalShopLikeSchema
 
 shoplike_schema = ShopLikeSchema()
-shoplikes_schema = ShopLikeSchema(many=True)
+shoplikes_schema = TotalShopLikeSchema()
 
 class ShopLikes(Resource):
     def get(self, shopid):
-        shoplike = ShopLikeModel.query.all()
+        shoplike = ShopModel.query.get(shopid)
         if shoplike:
             return shoplikes_schema.dump(shoplike)
-        return abort(404, "No Shop Likes Found")
+        return abort(404, message="No Shop Likes Found")
     
     @jwt_required()
     def post(self, shopid):
@@ -39,5 +39,7 @@ class ShopLike(Resource):
         if existing:
             abort(401, "Can't delete!")
         abort(404, "Doesn't exist")
+
+
 
     

@@ -27,11 +27,7 @@ class Shops(Resource):
             args = cleanNullTerms(args)
             shop = ShopModel(
                 user_id=user_id, 
-                building_name=args['building_name'],
-                phone_number1=args['phone_number1'],
-                category_id=args['category_id'],
-                location_id=args['location_id'],
-                description=args['description'])
+                **args)
             db.session.add(shop)
             db.session.commit()
             return shop_schema.dump(shop), 201
@@ -41,7 +37,9 @@ class Shops(Resource):
 class Shop(Resource):
     def get(self, id):
         result = ShopModel.query.filter_by(id=id).first()
-        return shop_schema.dump(result)
+        if result:
+            return shop_schema.dump(result)
+        abort(404, message="Shop Doesn't Exist")
     
     @jwt_required()
     def patch(self, id):

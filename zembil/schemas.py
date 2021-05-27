@@ -178,12 +178,13 @@ class ShopLikeSchema(ma.Schema):
     user = ma.Nested(UserSchema)
     shop = ma.Nested(ShopSchema)
 
-class TotalShopLikes(ma.Schema):
+class TotalShopLikeSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user", "shoplikes", "building_name", "phone_number1", 
-        "phone_number2", "category", "location", "description")
-        model = ShopLikeModel
+        fields = ("id", "building_name", "phone_number1", "phone_number2",
+         "description", "user", "shoplikes")
+        model = ProductModel
         ordered = True
+    id = fields.Integer(data_key="shopid")
     user = ma.Nested(UserSchema)
-    shoplikes = ma.List(ma.Nested(ShopLikeSchema))
+    shoplikes = ma.List(ma.Nested(ShopLikeSchema(exclude=["shop"])))
 

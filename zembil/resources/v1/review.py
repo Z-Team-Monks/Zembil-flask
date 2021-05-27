@@ -40,9 +40,17 @@ class Reviews(Resource):
         return abort(409, "User already rated this product")
 
 class Review(Resource):
-    def get(self, id):
+    def get(self, product_id, id):
         review = ReviewModel.query.filter_by(id=id).first()
         if review:
             return review_schema.dump(review)
+        return abort(404, "Review doesn't exist!")
+
+    def delete(self, id):
+        review = ReviewModel.query.get(id)
+        if review:
+            db.session.delete(review)
+            db.session.commit()
+            return 200
         return abort(404, "Review doesn't exist!")
 
