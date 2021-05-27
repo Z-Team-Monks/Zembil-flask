@@ -17,10 +17,10 @@ def create_app(config_class=Config):
     app.config.from_object(Config)
     jwt = JWTManager(app)
 
-    api = Api(app)
-    
     db.init_app(app)
 
+    from zembil.v1 import api_v1, api_v1_bp, API_VERSION_V1
+    
     from zembil.models import RevokedTokenModel
     
     @jwt.token_in_blocklist_loader
@@ -29,37 +29,12 @@ def create_app(config_class=Config):
         token = db.session.query(RevokedTokenModel.id).filter_by(jti=jti).scalar()
         return token is not None
 
-    from zembil.resources.user import User, Users, Authorize, UserLogout
-    from zembil.resources.shop import Shop, Shops
-    from zembil.resources.category import Category, Categories
-    from zembil.resources.location import Location, Locations
-    from zembil.resources.brand import Brand, Brands
-    from zembil.resources.shoplike import ShopLike, ShopLikes
-    from zembil.resources.review import Reviews, Review, ProductReviews
-    from zembil.resources.wishlist import WishLists, WishList
-    from zembil.resources.product import Product, Products
-
-    api.add_resource(Users, '/api/users')
-    api.add_resource(User, '/api/users/<int:id>')
-    api.add_resource(Authorize, '/api/users/auth')
-    api.add_resource(UserLogout, '/api/users/logout')
-    api.add_resource(Categories, '/api/categories')
-    api.add_resource(Category, '/api/categories/<int:id>')
-    api.add_resource(Locations, '/api/locations')
-    api.add_resource(Location, '/api/locations/<int:id>')
-    api.add_resource(Shops, '/api/shops')
-    api.add_resource(Shop, '/api/shops/<int:id>')
-    api.add_resource(ShopLikes, '/api/shops/<int:shopid>/likes')
-    api.add_resource(ShopLike, '/api/shops/<int:shopid>/likes/<int:id>')
-    api.add_resource(Reviews, '/api/products/reviews')
-    api.add_resource(Review, '/api/products/reviews/<int:id>')
-    api.add_resource(ProductReviews, '/api/products/<int:product_id>/reviews')
-    api.add_resource(Products, '/api/products')
-    api.add_resource(Product, '/api/products/<int:id>')
-    api.add_resource(Brand, '/api/brands/<int:id>')
-    api.add_resource(Brands, '/api/brands')
-    api.add_resource(WishLists, '/api/cart')
-    api.add_resource(WishList, '/api/cart/<int:id>')
+    app.register_blueprint(
+        api_v1_bp,
+        url_prefix='/{prefix}/v{version}'.format(
+        prefix='api',
+        version=API_VERSION_V1)
+    )
 
     CORS(app)
 

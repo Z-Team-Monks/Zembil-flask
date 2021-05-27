@@ -4,11 +4,12 @@ from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import ProductModel, ShopModel
-from zembil.schemas import ProductSchema
+from zembil.schemas import ProductSchema, ShopProductSchema
 from zembil.common.util import cleanNullTerms
 
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
+shop_products_schema = ShopProductSchema()
 
 class Products(Resource):
     def get(self):
@@ -56,3 +57,22 @@ class Product(Resource):
         if not existing:
             abort(404, message="Product doesn't exist!") 
         abort(400, message="Empty body was given")
+
+class ShopProducts(Resource):
+    def get(self, shop_id):
+        shop = ShopModel.query.get(shop_id)
+        if shop:
+            return shop_products_schema.dump(shop)
+        abort(404, message="Shop doesn't exist!")
+
+
+class SearchProduct(Resource):
+    def get(self, name):
+        products = ProductModel.query
+        products = products.filter(ProductModel.name.like('%' + name + '%'))
+        products = products.order_by(ProductModel.name).all()
+        if products:
+            return products_schema.dump(products)
+        abort(404, message="Product doesn't exist!")
+        
+        

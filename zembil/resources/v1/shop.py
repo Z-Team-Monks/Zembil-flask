@@ -23,7 +23,7 @@ class Shops(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         user_id = get_jwt_identity()
-        if user_id:
+        if user:
             args = cleanNullTerms(args)
             shop = ShopModel(
                 user_id=user_id, 
@@ -51,9 +51,9 @@ class Shop(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         args = cleanNullTerms(args)
-        user_id = get_jwt_identity()
+        user = get_jwt_identity()
         existing = ShopModel.query.get(id)
-        if existing and user_id == existing.user_id:
+        if existing and user.id == existing.user_id:
             shop = ShopModel.query.filter_by(id=id).update(args)
             db.session.commit()
             query = ShopModel.query.get(id)
@@ -61,3 +61,12 @@ class Shop(Resource):
         if existing:
             abort(403, message="User is not owner of this shop")
         abort(404, message="Shop doesn't exist!")
+
+class SearchShop(Resource):
+    def get(self, name):
+        shops = ShopModel.query
+        shops = shops.filter(ShopModel.name.like('%' + name + '%'))
+        shops = shops.order_by(ShopModel.name).all()
+        if shops:
+            return products_schema.dump(products)
+        abort(404, message="Product doesn't exist!")

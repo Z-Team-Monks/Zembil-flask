@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import current_app, request
 from flask_restful import Resource, fields, abort, reqparse
 from flask_jwt_extended import ( create_access_token, get_jwt,
@@ -44,7 +45,7 @@ class User(Resource):
             abort(400, message=errors.messages)
         args = cleanNullTerms(args)
         user_id = get_jwt_identity()
-        if user_id == id:
+        if user == id:
             existing = UserModel.query.filter_by(id=id).update(args)
         return abort(403, message="User not authorized!")
 
@@ -56,8 +57,12 @@ class Authorize(Resource):
         password = args['password']
         user = UserModel.query.filter_by(username=username).first()
         if user and user.check_password(password):
+            expires = timedelta(days=30)
             additional_claims = {"role": user.role}
-            token = create_access_token(identity=user.id, additional_claims=additional_claims)
+            token = create_access_token(
+                identity=user.id, 
+                expires_delta=expires,
+                additional_claims=additional_claims)
             return {'token': token}
         return abort(401, message="Incorrect Username or password")
 
