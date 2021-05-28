@@ -6,3 +6,7 @@ class Config:
     JWT_BLACKLIST_ENABLED = ['access']
     SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:password1@localhost:5432/zembilflask'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    UPLOAD_FOLDER = '/uploads/images'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    PAGINATION_PAGE_SIZE = 5
+    PAGINATION_PAGE_ARGUMENT_NAME = 'page'

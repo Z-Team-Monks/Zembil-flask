@@ -22,7 +22,7 @@ class Users(Resource):
             args = user_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role='user', phone=args['phone'])
+        user = UserModel(**args)
         db.session.add(user)
         db.session.commit()
         return user_schema.dump(user), 201

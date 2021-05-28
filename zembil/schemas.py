@@ -5,14 +5,16 @@ from zembil.models import *
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password_hash", "email", "role", "phone")
+        fields = ("id", "name", "username", "password_hash", "email", "date", "role", "phone")
         model = UserModel
         ordered = True
+    name = fields.String(required=False)
     username = fields.String(required=True)
     password_hash = fields.String(required=True, load_only=True, data_key="password")
     email = fields.Email(required=True)
-    role = fields.String(required=True, validate=lambda n: n == 'user' or n == 'admin')
+    role = fields.String(load_only=True)
     phone = fields.String(required=False)
+    date = fields.DateTime(dump_only=True, data_key="registration_key")
 
     @validates("phone")
     def validate_mobile(self, value):
@@ -49,12 +51,12 @@ class CategorySchema(ma.Schema):
 
 class ShopSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user_id", "location_id", "category_id", "building_name", "phone_number1", 
+        fields = ("id", "name", "user_id", "location", "category_id", "building_name", "phone_number1", 
         "phone_number2", "category", "description")
         model = ShopModel
         ordered = True
+    name = fields.String(required=False)
     user_id = fields.Integer(data_key="userid")
-    location_id = fields.Integer(data_key="locationid")
     category_id = fields.Integer(required=True, data_key="categoryid")
     category = fields.Pluck(CategorySchema, "name", dump_only=True)
     building_name = fields.String(required=True, data_key="buildingname")
@@ -62,6 +64,7 @@ class ShopSchema(ma.Schema):
     phone_number2 = fields.String(required=False, data_key="phonenumber2")
     description = fields.String(required=True, validate=validate.Length(5))
 
+    location = ma.Nested(LocationSchema)
 
     @validates("phone_number1")
     @validates("phone_number2")

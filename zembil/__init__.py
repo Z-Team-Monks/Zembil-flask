@@ -11,6 +11,7 @@ from zembil.config import Config
 db = SQLAlchemy()
 ma = Marshmallow()
 bcrypt = Bcrypt()
+cors = CORS()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -18,6 +19,7 @@ def create_app(config_class=Config):
     jwt = JWTManager(app)
 
     db.init_app(app)
+    cors.init_app(app)
 
     from zembil.v1 import api_v1, api_v1_bp, API_VERSION_V1
     
@@ -35,7 +37,5 @@ def create_app(config_class=Config):
         prefix='api',
         version=API_VERSION_V1)
     )
-
-    CORS(app)
 
     return app

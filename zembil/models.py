@@ -4,11 +4,13 @@ from zembil import db, bcrypt
 class UserModel(db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
+    # name = db.Column(db.String, nullable=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(10), nullable=False)
     phone = db.Column(db.String(50), nullable=True)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     shops = db.relationship('ShopModel', back_populates='user')
     reviews = db.relationship('ReviewModel', back_populates='user')
@@ -29,6 +31,7 @@ class UserModel(db.Model):
 class ShopModel(db.Model):
     __tablename__ = "shop"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     building_name = db.Column(db.String(100), nullable=False)
     phone_number1 = db.Column(db.String(50), nullable=True)
@@ -118,6 +121,16 @@ class ShopLikeModel(db.Model):
 
     user = db.relationship('UserModel', back_populates='shoplikes')
     shop = db.relationship('ShopModel', back_populates='shoplikes')
+
+class AdvertisementModel(db.Model):
+    __tablename__ = "advertisment"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    start_date = db.Column(db.DateTime, nullable=True, default=None)
+    end_date = db.Column(db.DateTime, nullable=True, default=None)
+
+    
 
 class RevokedTokenModel(db.Model):
     __tablename__ = "revoked_tokens"

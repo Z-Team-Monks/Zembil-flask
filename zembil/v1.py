@@ -7,7 +7,9 @@ from zembil.resources.v1.location import Location, Locations
 from zembil.resources.v1.shoplike import ShopLike, ShopLikes
 from zembil.resources.v1.review import Reviews, Review
 from zembil.resources.v1.wishlist import WishLists, WishList
-from zembil.resources.v1.product import Product, Products, ShopProducts, SearchProduct
+from zembil.resources.v1.product import Product, Products, ShopProducts, SearchProduct, TrendingProduct
+
+from zembil.resources.v1.send_file import SendFile
 
 API_VERSION_V1=1
 API_VERSION=API_VERSION_V1
@@ -37,9 +39,12 @@ api_v1.add_resource(Reviews, '/products/<int:product_id>/reviews')
 api_v1.add_resource(Review, '/products/<int:product_id>/reviews/<int:id>')
 api_v1.add_resource(Products, '/products')
 api_v1.add_resource(Product, '/products/<int:id>')
+api_v1.add_resource(TrendingProduct, '/products/trending')
 
 api_v1.add_resource(SearchProduct, '/search/products')
 api_v1.add_resource(SearchShop, '/search/shops')
 
 api_v1.add_resource(WishList, '/cart/<int:id>')
 api_v1.add_resource(WishLists, '/cart')
+
+api_v1.add_resource(SendFile, '/uploads/<string:filename>')

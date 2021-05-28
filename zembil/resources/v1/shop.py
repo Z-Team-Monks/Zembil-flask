@@ -46,7 +46,7 @@ class Shops(Resource):
             except:
                 abort(500, message="Database error")
             
-            return {"shop": shop_schema.dump(shop), "location": location_schema.dump(location)}, 201
+            return shop_schema.dump(shop), 201
         abort(404, message="User Doesn't Exist")
 
 
@@ -54,8 +54,7 @@ class Shop(Resource):
     def get(self, id):
         result = ShopModel.query.filter_by(id=id).first()
         if result:
-            location = LocationModel.query.get(result.location_id)
-            return {"shop": shop_schema.dump(result), "location": location_schema.dump(location)}
+            return shop_schema.dump(result)
         abort(404, message="Shop Doesn't Exist")
     
     @jwt_required()
@@ -100,3 +99,14 @@ class SearchShop(Resource):
         if shops:
             return products_schema.dump(products)
         abort(404, message="Product doesn't exist!")
+
+class ApproveShop(Resource):
+    @jwt_required()
+    def put(self, id):
+        role = get_jwt()['role']
+        if role == 'user':
+            abort(403, message="Higher Privelege required")
+        shop = ShopModel.query.get(id)
+        shop.is_approved = True
+        db.session.commit()
+        return 204

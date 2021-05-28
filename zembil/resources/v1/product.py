@@ -1,25 +1,45 @@
-from flask import request
+from flask import request, current_app
 from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from sqlalchemy import func
+from werkzeug.utils import secure_filename
 from zembil import db
 from zembil.models import ProductModel, ShopModel, CategoryModel, ReviewModel
 from zembil.schemas import ProductSchema, ShopProductSchema, RatingSchema
 from zembil.common.util import cleanNullTerms
+from zembil.common.helper import PaginationHelper
 
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
+
 shop_products_schema = ShopProductSchema()
 
 class Products(Resource):
     def get(self):
-        products = ProductModel.query.all()
-        return products_schema.dump(products)
+        limit = request.args.get('limit')
+        results_per_page = current_app.config['PAGINATION_PAGE_SIZE']
+        if limit:
+            results_per_page = int(limit)
+        pagination_helper = PaginationHelper(
+            request,
+            query=ProductModel.query,
+            resource_for_url='api_v1.products',
+            key_name='results',
+            schema=products_schema,
+            results_per_page=results_per_page
+        )
+        result = pagination_helper.paginate_query()
+        return result
     
     @jwt_required()
     def post(self):
         data = request.get_json()
+        image = request.files['file']
+        if image and image.filename == '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
+            data['image'] = filename
         try:
             args = product_schema.load(data)
         except ValidationError as errors:
@@ -40,7 +60,7 @@ class Product(Resource):
         if product:
             totalrating = ReviewModel.query.with_entities(
                                     func.sum(ReviewModel.rating).label("sum")
-                                    ).filter_by(product_id=id).first()[0]
+                        ).filter_by(product_id=id).first()[0]
             ratingcount = ReviewModel.query.filter_by(product_id=id).count()
             if not totalrating:
                 totalrating = 0.0
@@ -58,6 +78,11 @@ class Product(Resource):
     @jwt_required()
     def patch(self, id):
         data = request.get_json()
+        image = request.files['file']
+        if image and image.filename == '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
+            data['image'] = filename
         try:
             args = ProductSchema(partial=True).load(data)
         except ValidationError as errors:
@@ -93,3 +118,48 @@ class SearchProduct(Resource):
         if products:
             return products_schema.dump(products)
         abort(404, message="Product doesn't exist!")
+
+class FilterProdcut(Resource):
+    def get(self):
+        min_price = request.args.get('minPrice')
+        max_price = request.args.get('maxPrice')
+        products = ProductModel.query
+        if min_price:
+            products = products.filter(ProductModel.price >= float(min_price))
+        if max_price:
+            products = products.filter(ProductModel.price <= float(max_price))
+        if products:
+            return products_schema.dump(products)
+        abort(404, message="Product doesn't exist!")
+
+
+class TrendingProduct(Resource):
+    def get(self):
+        s = request.args.get('s')
+        products = ProductModel.query
+        if s:
+            if s == 'latest':
+                products = products.order_by(ProductModel.date.desc())
+            if s == 'popular':
+                sub_query = db.session.query(
+                    ReviewModel.product_id, 
+                    func.avg(ReviewModel.rating).label('rating')
+                    ).group_by(ReviewModel.product_id).subquery()
+                products = db.session.query(
+                    ProductModel).join(
+                    sub_query, 
+                    ProductModel.id == sub_query.c.product_id
+                    ).order_by(sub_query.c.rating)
+            results_per_page = current_app.config['PAGINATION_PAGE_SIZE']
+            pagination_helper = PaginationHelper(
+                request,
+                query=products,
+                resource_for_url='api_v1.trendingproduct',
+                key_name='results',
+                schema=products_schema,
+                results_per_page=results_per_page
+            )
+            result = pagination_helper.paginate_query()
+            return result
+        abort(404, message="Product doesn't exist")
+
