@@ -1,3 +1,4 @@
+import datetime
 import re
 from marshmallow import fields, Schema, validate, validates, ValidationError
 from zembil import ma
@@ -124,6 +125,27 @@ class ShopProductSchema(ma.Schema):
         ordered = True
     id = fields.Integer(data_key="shopid")
     products = ma.List(ma.Nested(ProductSchema))
+
+
+class AdvertisementSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "shop_id", "start_date", "end_date")
+    id = fields.Integer(dump_only=True)
+    shop_id = fields.Integer(data_key="shopid")
+    start_date = fields.Date(data_key="startdate")
+    end_date = fields.Date(data_key="enddate")
+
+    @validates("start_date")
+    @validates("end_date")
+    def validate_date(self, value):
+        present = datetime.now()
+        if start_date < value:
+            raise ValidationError("Date is in the past")
+
+    @validates("end_date")
+    def validate_end_date(self, value):
+        if self.start_date > value:
+            raise ValidationError("Start date is behind end date")
 
 
 class ReviewSchema(ma.Schema):

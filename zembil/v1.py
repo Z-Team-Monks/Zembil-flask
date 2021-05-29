@@ -8,6 +8,7 @@ from zembil.resources.v1.shoplike import ShopLike, ShopLikes
 from zembil.resources.v1.review import Reviews, Review
 from zembil.resources.v1.wishlist import WishLists, WishList
 from zembil.resources.v1.product import Product, Products, ShopProducts, SearchProduct, TrendingProduct
+from zembil.resources.v1.advertisment import Advertisements, Advertisement
 
 from zembil.resources.v1.send_file import SendFile
 
@@ -49,3 +50,6 @@ api_v1.add_resource(WishList, '/cart/<int:id>')
 api_v1.add_resource(WishLists, '/cart')
 
 api_v1.add_resource(SendFile, '/uploads/<string:filename>')
+
+api_v1.add_resource(Advertisement, '/ads')
+api_v1.add_resource(Advertisements, '/ads/<int:id>')

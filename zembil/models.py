@@ -4,7 +4,7 @@ from zembil import db, bcrypt
 class UserModel(db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    # name = db.Column(db.String, nullable=True)
+    name = db.Column(db.String, nullable=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(100), nullable=False)
@@ -45,7 +45,10 @@ class ShopModel(db.Model):
     location = db.relationship('LocationModel', back_populates='shop', cascade="all,delete")
     category = db.relationship('CategoryModel', back_populates='shops')
     products = db.relationship('ProductModel', back_populates='shop')
-    shoplikes = db.relationship('ShopLikeModel', back_populates='shop')
+    advertisments = db.relationship('AdvertisementModel', backref='shop', lazy=True)
+    followers = db.relationship('User', secondary=shop_followers, lazy='subquery',
+        backref=db.backref('shops', lazy=True))
+
 
 class ProductModel(db.Model):
     __tablename__ = "product"
@@ -111,25 +114,19 @@ class WishListModel(db.Model):
     user = db.relationship('UserModel', back_populates='wishlists')
     product = db.relationship('ProductModel', back_populates='wishlists')
 
-
-class ShopLikeModel(db.Model):
-    __tablename__ = "shop_like"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
-    __table_args__ = (db.UniqueConstraint('user_id', 'shop_id'), )
-
-    user = db.relationship('UserModel', back_populates='shoplikes')
-    shop = db.relationship('ShopModel', back_populates='shoplikes')
+shop_followers = db.Table('shop_followers', 
+            db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+            db.Column('shop_id', db.Integer, db.ForeignKey('shop.id'), primary_key=True)
+        )
 
 class AdvertisementModel(db.Model):
     __tablename__ = "advertisment"
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
     start_date = db.Column(db.DateTime, nullable=True, default=None)
     end_date = db.Column(db.DateTime, nullable=True, default=None)
-
+    is_active = db.Column(db.Boolean, nullable=False, default=False)
     
 
 class RevokedTokenModel(db.Model):
