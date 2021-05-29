@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, fields, reqparse, abort
+from flask_restful import Resource, fields, reqparse, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from zembil import db
 from zembil.models import ShopLikeModel, ShopModel

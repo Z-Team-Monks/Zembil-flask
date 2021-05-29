@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask_restx import Api
+from flask_restful import Api
 from zembil.resources.v1.user import User, Users, Authorize, UserLogout, AdminUser
 from zembil.resources.v1.shop import Shop, Shops, SearchShop
 from zembil.resources.v1.category import Category, Categories

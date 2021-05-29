@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, abort
+from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db

@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restx import Resource, Api, reqparse, abort 
+from flask_restful import Resource, Api, reqparse, abort 
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager

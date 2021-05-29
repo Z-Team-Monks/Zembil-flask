@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, abort
+from flask_restful import Resource, abort
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import LocationModel
