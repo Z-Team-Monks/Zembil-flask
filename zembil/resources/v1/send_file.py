@@ -1,5 +1,5 @@
 from flask import send_from_directory
-from flask_restful import Resource, abort
+from flask_restx import Resource, abort
 
 class SendFile(Resource):
     def get(self, filename):

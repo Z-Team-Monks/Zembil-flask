@@ -1,6 +1,6 @@
 from datetime import timedelta
 from flask import current_app, request
-from flask_restful import Resource, fields, abort, reqparse
+from flask_restx import Resource, fields, abort, reqparse
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from marshmallow import ValidationError

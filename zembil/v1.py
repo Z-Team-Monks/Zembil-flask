@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask_restful import Api
+from flask_restx import Api
 from zembil.resources.v1.user import User, Users, Authorize, UserLogout, AdminUser
 from zembil.resources.v1.shop import Shop, Shops, SearchShop
 from zembil.resources.v1.category import Category, Categories
@@ -14,7 +14,8 @@ from zembil.resources.v1.send_file import SendFile
 API_VERSION_V1=1
 API_VERSION=API_VERSION_V1
 api_v1_bp = Blueprint('api_v1', __name__)
-api_v1 = Api(api_v1_bp)
+api_v1 = Api(api_v1_bp, version='1.0', title='Zembil API',
+    description='A zembil API', doc='/')
 
 
 api_v1.add_resource(Users, '/users')
