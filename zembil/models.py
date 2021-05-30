@@ -8,14 +8,14 @@ class UserModel(db.Model):
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(10), nullable=False)
+    role = db.Column(db.String(10), nullable=False, default='user')
     phone = db.Column(db.String(50), nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     shops = db.relationship('ShopModel', back_populates='user')
     reviews = db.relationship('ReviewModel', back_populates='user')
     wishlists = db.relationship('WishListModel', back_populates='user')
-    shoplikes = db.relationship('ShopLikeModel', back_populates='user')
+    shops_followed = db.relationship('ShopFollowerModel', back_populates='user')
 
     @property
     def password(self):
@@ -46,8 +46,17 @@ class ShopModel(db.Model):
     category = db.relationship('CategoryModel', back_populates='shops')
     products = db.relationship('ProductModel', back_populates='shop')
     advertisments = db.relationship('AdvertisementModel', backref='shop', lazy=True)
-    followers = db.relationship('User', secondary=shop_followers, lazy='subquery',
-        backref=db.backref('shops', lazy=True))
+    followers = db.relationship('ShopFollowerModel', back_populates='shop')
+
+class ShopFollowerModel(db.Model):
+    __tablename__ = "shop_follower"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('user_id', 'shop_id'), )
+
+    user = db.relationship('UserModel', back_populates='shops_followed')
+    shop = db.relationship('ShopModel', back_populates='followers')
 
 
 class ProductModel(db.Model):
@@ -114,13 +123,9 @@ class WishListModel(db.Model):
     user = db.relationship('UserModel', back_populates='wishlists')
     product = db.relationship('ProductModel', back_populates='wishlists')
 
-shop_followers = db.Table('shop_followers', 
-            db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-            db.Column('shop_id', db.Integer, db.ForeignKey('shop.id'), primary_key=True)
-        )
 
 class AdvertisementModel(db.Model):
-    __tablename__ = "advertisment"
+    __tablename__ = "advertisement"
 
     id = db.Column(db.Integer, primary_key=True)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)

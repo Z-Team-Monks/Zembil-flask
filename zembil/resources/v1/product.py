@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
@@ -35,11 +35,14 @@ class Products(Resource):
     @jwt_required()
     def post(self):
         data = request.get_json()
-        image = request.files['file']
-        if image and image.filename == '':
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
-            data['image'] = filename
+        try:
+            image = request.files['file']
+            if image and image.filename != '':
+                filename = secure_filename(image.filename)
+                image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
+                data['image'] = filename
+        except:
+            pass
         try:
             args = product_schema.load(data)
         except ValidationError as errors:
@@ -58,21 +61,18 @@ class Product(Resource):
     def get(self, id):
         product = ProductModel.query.get(id)
         if product:
-            totalrating = ReviewModel.query.with_entities(
-                                    func.sum(ReviewModel.rating).label("sum")
+            averageRating = ReviewModel.query.with_entities(
+                                    func.avg(ReviewModel.rating).label("sum")
                         ).filter_by(product_id=id).first()[0]
             ratingcount = ReviewModel.query.filter_by(product_id=id).count()
-            if not totalrating:
-                totalrating = 0.0
             data = product_schema.dump(product)
+            if not averageRating:
+                averageRating = 0.0
             rating = RatingSchema().dump({
-                'totalrating': totalrating,
+                'averageRating': averageRating,
                 'ratingcount': ratingcount
             })
-            return {
-                "product": data,
-                "rating": rating
-            }
+            return jsonify({"product": data, "rating": rating})
         abort(404, message="Product doesn't exist!") 
 
     @jwt_required()
@@ -119,7 +119,7 @@ class SearchProduct(Resource):
             return products_schema.dump(products)
         abort(404, message="Product doesn't exist!")
 
-class FilterProdcut(Resource):
+class FilterProduct(Resource):
     def get(self):
         min_price = request.args.get('minPrice')
         max_price = request.args.get('maxPrice')
@@ -146,10 +146,10 @@ class TrendingProduct(Resource):
                     func.avg(ReviewModel.rating).label('rating')
                     ).group_by(ReviewModel.product_id).subquery()
                 products = db.session.query(
-                    ProductModel).join(
+                        ProductModel).join(
                     sub_query, 
                     ProductModel.id == sub_query.c.product_id
-                    ).order_by(sub_query.c.rating)
+                    ).order_by(sub_query.c.rating.desc())
             results_per_page = current_app.config['PAGINATION_PAGE_SIZE']
             pagination_helper = PaginationHelper(
                 request,

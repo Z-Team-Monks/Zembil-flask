@@ -46,11 +46,30 @@ class Review(Resource):
             return review_schema.dump(review)
         return abort(404, message="Review doesn't exist!")
 
+    @jwt_required()
     def delete(self, product_id, id):
         review = ReviewModel.query.get(id)
         if review:
             db.session.delete(review)
             db.session.commit()
             return {"message": "Successfull"}, 204
-        return abort(404, message="Review doesn't exist!")
+        abort(404, message="Review doesn't exist!")
+
+    @jwt_required()
+    def patch(self, product_id, id):
+        data = request.get_json()
+        try:
+            args = ReviewSchema(partial=True).load(data)
+        except ValidationError as errors:
+            abort(400, message=errors.messages)
+        existing = ReviewModel.query.get(id)
+        args = cleanNullTerms(args)
+        user_id = get_jwt_identity()
+        if existing and existing.user_id == user_id:
+            review = ReviewModel.query.filter_by(id=id).update(args)
+            db.session.commit()
+            query = ReviewModel.query.get(id)
+            return review_schema.dump(query), 200
+        abort(404, message="Review doesn't exist")
+
 

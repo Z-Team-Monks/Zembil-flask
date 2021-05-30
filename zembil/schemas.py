@@ -6,16 +6,17 @@ from zembil.models import *
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "username", "password_hash", "email", "date", "role", "phone")
+        fields = ("id", "name", "username", "password", "email", "date", "role", "phone")
         model = UserModel
         ordered = True
+    id = fields.Integer(dump_only=True)
     name = fields.String(required=False)
     username = fields.String(required=True)
-    password_hash = fields.String(required=True, load_only=True, data_key="password")
+    password = fields.String(required=True, load_only=True, data_key="password")
     email = fields.Email(required=True)
     role = fields.String(load_only=True)
     phone = fields.String(required=False)
-    date = fields.DateTime(dump_only=True, data_key="registration_key")
+    date = fields.DateTime(dump_only=True, data_key="registration_date")
 
     @validates("phone")
     def validate_mobile(self, value):
@@ -31,6 +32,14 @@ class UserSchema(ma.Schema):
             raise ValidationError(
                 '"{username}" username already exists, '
                 'please use a different username.'.format(username=username)
+            )
+
+    @validates("email")
+    def validate_username(self, email):
+        if bool(UserModel.query.filter_by(email=email).first()):
+            raise ValidationError(
+                '"{email}" email already exists, '
+                'please use a different email.'.format(email=email)
             )
     
 
@@ -53,7 +62,7 @@ class CategorySchema(ma.Schema):
 class ShopSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "user_id", "location", "category_id", "building_name", "phone_number1", 
-        "phone_number2", "category", "description")
+        "phone_number2", "category", "description", "is_approved")
         model = ShopModel
         ordered = True
     name = fields.String(required=False)
@@ -64,6 +73,7 @@ class ShopSchema(ma.Schema):
     phone_number1 = fields.String(required=False, data_key="phonenumber1")
     phone_number2 = fields.String(required=False, data_key="phonenumber2")
     description = fields.String(required=True, validate=validate.Length(5))
+    is_approved = fields.Boolean(dump_only=True, data_key="isActive")
 
     location = ma.Nested(LocationSchema)
 
@@ -76,18 +86,23 @@ class ShopSchema(ma.Schema):
             msg = u"Invalid mobile number."
             raise ValidationError(msg)
 
+    @validates("name")
+    def validate_name(self, value):
+        if not re.match(r'[a-zA-Z\s]+$', value):
+            raise ValidationError("Invalid first name and last name")
+
 class RatingSchema(ma.Schema):
     class Meta:
-        fields = ("ratingcount", "totalrating")
+        fields = ("ratingcount", "averageRating")
         ordered = True
-    totalrating = fields.Float(dump_only=True)
+    averageRating = fields.Float(dump_only=True)
     ratingcount = fields.Integer(dump_only=True)
 
 class ProductSchema(ma.Schema):
     class Meta:
         fields = ("id", "shop_id", "brand", "name", "date", 
         "description", "category", "category_id", "price", "condition", "image", 
-        "delivery_available", "discount", "product_count")
+        "delivery_available", "discount", "product_count", "rating")
         model = ProductModel
         ordered = True
     id = fields.Integer()
@@ -95,7 +110,7 @@ class ProductSchema(ma.Schema):
     date = fields.DateTime(dump_only=True)
     brand = fields.String(required=False, data_key="brand")
     shop_id = fields.Integer(required=True, data_key="shopid")
-    category_id = fields.Integer(required=True, data_key="categoryid", load_only=True)
+    category_id = fields.Integer(required=True, data_key="categoryid")
     category = fields.Pluck(CategorySchema, 'name', dump_only=True)
     description = fields.String(required=True, validate=validate.Length(5))
     price = fields.Float(required=True, validate=lambda n: n > 0)
@@ -104,6 +119,7 @@ class ProductSchema(ma.Schema):
     delivery_available = fields.Boolean(required=False, data_key="deliveryavailable")
     discount = fields.Float(required=False, validate=lambda n: n >= 0)
     product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productcount")
+    rating = fields.Float(dump_only=True)
 
     @validates("image")
     def validate_url(self, value):
@@ -188,15 +204,15 @@ class UserWishListSchema(ma.Schema):
         ordered = True
     wishlists = ma.List(ma.Nested(WishListSchema))
 
-class ShopLikeSchema(ma.Schema):
+class ShopFollowerSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user_id", "shop_id")
-        model = ShopLikeModel
+        fields = ("user_id", "shop_id")
+        model = ShopFollowerModel
         ordered = True
     user_id = fields.Integer(data_key="userid")
     shop_id = fields.Integer(data_key="shopid")
 
-class TotalShopLikeSchema(ma.Schema):
+class TotalShopFollowerSchema(ma.Schema):
     class Meta:
         fields = ("id", "building_name", "phone_number1", "phone_number2",
          "description", "shoplikes")
@@ -204,5 +220,5 @@ class TotalShopLikeSchema(ma.Schema):
         ordered = True
     id = fields.Integer(data_key="shopid")
     user = ma.Nested(UserSchema)
-    shoplikes = ma.List(ma.Nested(ShopLikeSchema))
+    shoplikes = ma.List(ma.Nested(ShopFollowerSchema))
 
