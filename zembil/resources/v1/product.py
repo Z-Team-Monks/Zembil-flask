@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from zembil import db
 from zembil.models import ProductModel, ShopModel, CategoryModel, ReviewModel
 from zembil.schemas import ProductSchema, ShopProductSchema, RatingSchema
-from zembil.common.util import cleanNullTerms
+from zembil.common.util import clean_null_terms
 from zembil.common.helper import PaginationHelper
 
 product_schema = ProductSchema()
@@ -47,7 +47,7 @@ class Products(Resource):
             args = product_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         user_id = get_jwt_identity()
         shop_owner = ShopModel.query.filter_by(user_id=user_id).first()
         if shop_owner and args:
@@ -61,15 +61,15 @@ class Product(Resource):
     def get(self, id):
         product = ProductModel.query.get(id)
         if product:
-            averageRating = ReviewModel.query.with_entities(
+            average_rating = ReviewModel.query.with_entities(
                                     func.avg(ReviewModel.rating).label("sum")
                         ).filter_by(product_id=id).first()[0]
             ratingcount = ReviewModel.query.filter_by(product_id=id).count()
             data = product_schema.dump(product)
-            if not averageRating:
-                averageRating = 0.0
+            if not average_rating:
+                average_rating = 0.0
             rating = RatingSchema().dump({
-                'averageRating': averageRating,
+                'averageRating': average_rating,
                 'ratingcount': ratingcount
             })
             return jsonify({"product": data, "rating": rating})
@@ -87,12 +87,12 @@ class Product(Resource):
             args = ProductSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         existing = ProductModel.query.get(id)
         if existing and args:
             product = ProductModel.query.filter_by(id=id).update(args)
             db.session.commit()
-            return product_schema.dump(ProductModel.query.get(id)), 200
+            return product_schema.dump(product), 200
         if not existing:
             abort(404, message="Product doesn't exist!")
         abort(400, message="Empty body was given")

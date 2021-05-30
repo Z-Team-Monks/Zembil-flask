@@ -62,7 +62,7 @@ class CategorySchema(ma.Schema):
 class ShopSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "user_id", "location", "category_id", "building_name", "phone_number1", 
-        "phone_number2", "category", "description", "is_approved")
+        "phone_number2", "category", "description", "status")
         model = ShopModel
         ordered = True
     name = fields.String(required=False)
@@ -73,7 +73,7 @@ class ShopSchema(ma.Schema):
     phone_number1 = fields.String(required=False, data_key="phonenumber1")
     phone_number2 = fields.String(required=False, data_key="phonenumber2")
     description = fields.String(required=True, validate=validate.Length(5))
-    is_approved = fields.Boolean(dump_only=True, data_key="isActive")
+    status = fields.Boolean(dump_only=True, data_key="isActive")
 
     location = ma.Nested(LocationSchema)
 

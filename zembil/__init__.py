@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 from zembil.config import Config
 
 
@@ -12,12 +13,14 @@ db = SQLAlchemy()
 ma = Marshmallow()
 bcrypt = Bcrypt()
 cors = CORS()
+csrf = CSRFProtect()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
     jwt = JWTManager(app)
 
+    csrf.init_app(app)
     db.init_app(app)
     cors.init_app(app)
 

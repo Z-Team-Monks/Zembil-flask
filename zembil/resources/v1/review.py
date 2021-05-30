@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 from zembil import db
 from zembil.models import ReviewModel, ProductModel
 from zembil.schemas import ReviewSchema, ProductReviewSchema
-from zembil.common.util import cleanNullTerms
+from zembil.common.util import clean_null_terms
 
 review_schema = ReviewSchema()
 reviews_schema = ReviewSchema(many=True)
@@ -25,7 +25,7 @@ class Reviews(Resource):
             args = review_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         user_id = get_jwt_identity()
         existing = ReviewModel.query.filter_by(user_id=user_id, product_id=product_id).first()
         if not existing and args:
@@ -63,13 +63,12 @@ class Review(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         existing = ReviewModel.query.get(id)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         user_id = get_jwt_identity()
         if existing and existing.user_id == user_id:
             review = ReviewModel.query.filter_by(id=id).update(args)
             db.session.commit()
-            query = ReviewModel.query.get(id)
-            return review_schema.dump(query), 200
+            return review_schema.dump(review), 200
         abort(404, message="Review doesn't exist")
 
 

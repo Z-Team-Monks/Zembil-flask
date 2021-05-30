@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 from zembil import db
 from zembil.models import AdvertisementModel
 from zembil.schemas import AdvertisementSchema
-from zembil.common.util import cleanNullTerms
+from zembil.common.util import clean_null_terms
 
 advertisement_schema = AdvertisementSchema()
 advertisements_schema = AdvertisementSchema(many=True)
@@ -47,15 +47,14 @@ class Advertisement(Resource):
             args = AdvertisementSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         if not args:
             abort(400, message="Empty json body")
         existing = AdvertisementModel.query.get(id)
         if existing:
             ad = AdvertisementModel.query.filter_by(id=id).update(args)
             db.session.commit()
-            query = AdvertisementModel.query.get(id)
-            return advertisement_schema.dump(query), 200
+            return advertisement_schema.dump(ad), 200
         abort(404, message="Ad doesn't exist!")
     
     @jwt_required()

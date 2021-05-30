@@ -7,7 +7,7 @@ from marshmallow import ValidationError
 from zembil import db
 from zembil.models import UserModel, RevokedTokenModel
 from zembil.schemas import UserSchema
-from zembil.common.util import cleanNullTerms
+from zembil.common.util import clean_null_terms
 
 user_schema = UserSchema()
 
@@ -45,9 +45,9 @@ class User(Resource):
             args = UserSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         user_id = get_jwt_identity()
-        if user == id:
+        if user_id == id:
             existing = UserModel.query.filter_by(id=id).update(args)
         return abort(403, message="User not authorized!")
 

@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 from zembil import db
 from zembil.models import UserModel, ShopModel, LocationModel, CategoryModel
 from zembil.schemas import ShopSchema, LocationSchema
-from zembil.common.util import cleanNullTerms
+from zembil.common.util import clean_null_terms
 
 shop_schema = ShopSchema()
 location_schema = LocationSchema()
@@ -28,16 +28,14 @@ class Shops(Resource):
             shop_args = shop_schema.load(data['shop'])
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        except:
-            abort(400)
         user_id = get_jwt_identity()
         user = UserModel.query.get(user_id)
         if user:
-            existingLocation = LocationModel.query.filter_by(
+            existing_location = LocationModel.query.filter_by(
                 latitude=location_args['latitude'],
                 longitude=location_args['longitude']
                 )
-            if existingLocation:
+            if existing_location:
                 abort(409, message="Shop with this location already exists")
             try:
                 location = LocationModel(
@@ -75,7 +73,7 @@ class Shop(Resource):
             args = ShopSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        args = cleanNullTerms(args)
+        args = clean_null_terms(args)
         if not args:
             abort(400, message="Empty json body")
         user_id = get_jwt_identity()
@@ -83,8 +81,7 @@ class Shop(Resource):
         if existing and user_id == existing.user_id:
             shop = ShopModel.query.filter_by(id=id).update(args)
             db.session.commit()
-            query = ShopModel.query.get(id)
-            return shop_schema.dump(query), 200
+            return shop_schema.dump(shop), 200
         if existing:
             abort(403, message="User is not owner of this shop")
         abort(404, message="Shop doesn't exist!")
@@ -120,6 +117,6 @@ class ApproveShop(Resource):
         if role == 'user':
             abort(403, message="Higher Privelege required")
         shop = ShopModel.query.get(id)
-        shop.is_approved = status
+        shop.status = status
         db.session.commit()
         return shop_schema.dump(shop), 204
