@@ -155,7 +155,7 @@ class AdvertisementSchema(ma.Schema):
     @validates("end_date")
     def validate_date(self, value):
         present = datetime.now()
-        if start_date < value:
+        if present > value:
             raise ValidationError("Date is in the past")
 
     @validates("end_date")
