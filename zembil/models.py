@@ -143,3 +143,11 @@ class RevokedTokenModel(db.Model):
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
         return bool(query)
+
+
+class NoificationModel(db.Model):
+    __tablename__ = "notification"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    notification_message = db.Column(db.Text, nullable=True)
+    seen = db.Column(db.Boolean, nullable=False, default=False)

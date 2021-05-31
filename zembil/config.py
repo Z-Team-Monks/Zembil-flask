@@ -8,5 +8,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = '/uploads/images'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    CORS_HEADERS = 'Content-Type'
     PAGINATION_PAGE_SIZE = 5
     PAGINATION_PAGE_ARGUMENT_NAME = 'page'
