@@ -9,14 +9,14 @@ class UserSchema(ma.Schema):
         fields = ("id", "name", "username", "password", "email", "date", "role", "phone")
         model = UserModel
         ordered = True
-    id = fields.Integer(dump_only=True)
+    id = fields.Integer(dump_only=True, data_key="userId")
     name = fields.String(required=False)
     username = fields.String(required=True)
     password = fields.String(required=True, load_only=True, data_key="password")
     email = fields.Email(required=True)
     role = fields.String(load_only=True)
     phone = fields.String(required=False)
-    date = fields.DateTime(dump_only=True, data_key="registration_date")
+    date = fields.DateTime(dump_only=True, data_key="dateAccountCreated")
 
     @validates("phone")
     def validate_mobile(self, value):
@@ -50,28 +50,29 @@ class LocationSchema(ma.Schema):
         ordered = True
     longitude = fields.Float(required=True, validate=lambda n: n > -180 and n < 180)
     latitude = fields.Float(required=True, validate=lambda n: n > -90 and n < 90)
-    description = fields.String(required=True, validate=validate.Length(5))
+    description = fields.String(required=True, validate=validate.Length(5), data_key="locationName")
 
 class CategorySchema(ma.Schema):
     class Meta:
         fields = ("id", "name")
         model = CategoryModel
         ordered = True
-    name = fields.String(required=True, validate=lambda n: n.isalpha())
+    name = fields.String(required=True, validate=lambda n: n.isalpha(), data_key="categoryName")
 
 class ShopSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "user_id", "location", "category_id", "building_name", "phone_number1", 
+        fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1", 
         "phone_number2", "category", "description", "status")
         model = ShopModel
         ordered = True
     name = fields.String(required=False)
-    user_id = fields.Integer(data_key="userid")
-    category_id = fields.Integer(required=True, data_key="categoryid")
+    user_id = fields.Integer(data_key="userId")
+    category_id = fields.Integer(required=True, data_key="categoryId")
+    location_id = fields.Integer(data_key="shopLocationId")
     category = fields.Pluck(CategorySchema, "name", dump_only=True)
-    building_name = fields.String(required=True, data_key="buildingname")
-    phone_number1 = fields.String(required=False, data_key="phonenumber1")
-    phone_number2 = fields.String(required=False, data_key="phonenumber2")
+    building_name = fields.String(required=True, data_key="buildingName")
+    phone_number1 = fields.String(required=False, data_key="phoneNumber")
+    phone_number2 = fields.String(required=False, data_key="phoneNumber2")
     description = fields.String(required=True, validate=validate.Length(5))
     status = fields.Boolean(dump_only=True, data_key="isActive")
 
@@ -105,20 +106,20 @@ class ProductSchema(ma.Schema):
         "delivery_available", "discount", "product_count", "rating")
         model = ProductModel
         ordered = True
-    id = fields.Integer()
-    name = fields.String(required=True)
-    date = fields.DateTime(dump_only=True)
+    id = fields.Integer(dump_only=True, data_key="productId")
+    name = fields.String(required=True, data_key="productName")
+    date = fields.DateTime(dump_only=True, data_key="dateInserted")
     brand = fields.String(required=False, data_key="brand")
-    shop_id = fields.Integer(required=True, data_key="shopid")
-    category_id = fields.Integer(required=True, data_key="categoryid")
+    shop_id = fields.Integer(required=True, data_key="shopId")
+    category_id = fields.Integer(required=True, data_key="categoryId")
     category = fields.Pluck(CategorySchema, 'name', dump_only=True)
     description = fields.String(required=True, validate=validate.Length(5))
     price = fields.Float(required=True, validate=lambda n: n > 0)
     condition = fields.String(required=True, validate=lambda n: n.isalpha())
-    image = fields.String(required=False, data_key="imageurl")
-    delivery_available = fields.Boolean(required=False, data_key="deliveryavailable")
+    image = fields.String(required=False, data_key="imageUrl")
+    delivery_available = fields.Boolean(required=False, data_key="deliveryAvailable")
     discount = fields.Float(required=False, validate=lambda n: n >= 0)
-    product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productcount")
+    product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productCount")
     rating = fields.Float(dump_only=True)
 
     @validates("image")
@@ -139,7 +140,7 @@ class ShopProductSchema(ma.Schema):
         fields = ("id", "products")
         model = ShopModel
         ordered = True
-    id = fields.Integer(data_key="shopid")
+    id = fields.Integer(data_key="shopId")
     products = ma.List(ma.Nested(ProductSchema))
 
 
@@ -147,9 +148,9 @@ class AdvertisementSchema(ma.Schema):
     class Meta:
         fields = ("id", "shop_id", "start_date", "end_date")
     id = fields.Integer(dump_only=True)
-    shop_id = fields.Integer(data_key="shopid")
-    start_date = fields.Date(data_key="startdate")
-    end_date = fields.Date(data_key="enddate")
+    shop_id = fields.Integer(data_key="shopId")
+    start_date = fields.Date(data_key="startDate")
+    end_date = fields.Date(data_key="endDate")
 
     @validates("start_date")
     @validates("end_date")
@@ -166,21 +167,23 @@ class AdvertisementSchema(ma.Schema):
 
 class ReviewSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user", "product_id", "rating", "review_text", "date")
+        fields = ("id", "user", "user_id", "product_id", "rating", "review_text", "date")
         model = ReviewModel
         ordered = True
     rating = fields.Integer(required=False, validate=lambda n: n > 0 and n < 6)
-    review_text = fields.String(required=False, data_key="reviewtext")
+    review_text = fields.String(required=False, data_key="comment")
     user = ma.Nested(UserSchema)
-    product_id = fields.Integer(dump_only=True, data_key="productid")
+    user_id = fields.Integer(data_key="userId")
+    product_id = fields.Integer(dump_only=True, data_key="productId")
+    date = fields.DateTime(dump_only=True, data_key="reviewDate")
 
 class ProductReviewSchema(ma.Schema):
     class Meta:
         fields = ("id", "reviews")
         model = ProductModel
         ordered = True
-    id = fields.Integer(data_key="productid")
-    reviews = ma.Nested(ReviewSchema(many=True))
+    id = fields.Integer(data_key="productId")
+    reviews = ma.Nested(ReviewSchema(many=True), data_key="productReviews")
 
 class CategoryShopsSchema(ma.Schema):
     class Meta:
@@ -191,11 +194,14 @@ class CategoryShopsSchema(ma.Schema):
 
 class WishListSchema(ma.Schema):
     class Meta:
-        fields = ("id", "product_id", "user_id", "date")
+        fields = ("id", "product_id", "user_id", "date", "product")
         model = WishListModel
         ordered = True
-    user_id = fields.Integer(data_key="userid")
-    product_id = fields.Integer(required=True, data_key="productid")
+    id = fields.Integer(dump_only=True, data_key="wishListItemId")
+    user_id = fields.Integer(dump_only=True, data_key="userId")
+    product_id = fields.Integer(required=True, data_key="productId")
+    date = fields.DateTime(dump_only=True, data_key="dateAdded")
+    product = ma.Nested(ProductSchema)
 
 class UserWishListSchema(ma.Schema):
     class Meta:
@@ -209,8 +215,8 @@ class ShopFollowerSchema(ma.Schema):
         fields = ("user_id", "shop_id")
         model = ShopFollowerModel
         ordered = True
-    user_id = fields.Integer(data_key="userid")
-    shop_id = fields.Integer(data_key="shopid")
+    user_id = fields.Integer(data_key="userId")
+    shop_id = fields.Integer(data_key="shopId")
 
 class TotalShopFollowerSchema(ma.Schema):
     class Meta:
@@ -218,7 +224,17 @@ class TotalShopFollowerSchema(ma.Schema):
          "description", "shoplikes")
         model = ShopModel
         ordered = True
-    id = fields.Integer(data_key="shopid")
+    id = fields.Integer(data_key="shopId")
     user = ma.Nested(UserSchema)
     shoplikes = ma.List(ma.Nested(ShopFollowerSchema))
+
+class NotificationSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "user_id", "notification_message", "notification_type" "seen")
+    id = fields.Integer(dump_only=True, data_key="notificationId")
+    user_id = fields.String(dump_only=True, data_key="userId")
+    notification_message = fields.String(dump_only=True, data_key="notificationMessage")
+    notification_type = fields.String(dump_only=True, data_key="notificationType")
+    seen = fields.Boolean(dump_only=True, data_key="seen")
+
 

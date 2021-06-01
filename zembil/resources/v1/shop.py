@@ -75,15 +75,15 @@ class Shop(Resource):
             abort(400, message=errors.messages)
         args = clean_null_terms(args)
         if not args:
-            abort(400, message="Empty json body")
+            abort(400, message="Empty json body was given!")
         user_id = get_jwt_identity()
-        existing = ShopModel.query.get(id)
-        if existing and user_id == existing.user_id:
-            shop = ShopModel.query.filter_by(id=id).update(args)
-            db.session.commit()
-            return shop_schema.dump(shop), 200
-        if existing:
-            abort(403, message="User is not owner of this shop")
+        existing = ShopModel.query.filter_by(id=id)
+        if existing.first():
+            if existing.first().user_id == user_id:
+                shop = existing.update(args)
+                db.session.commit()
+                return shop_schema.dump(existing.first()), 200
+            abort(403, message="Shop doesn't belong to this user!")
         abort(404, message="Shop doesn't exist!")
 
     def delete(self, id):

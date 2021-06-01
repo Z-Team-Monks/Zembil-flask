@@ -10,13 +10,12 @@ from zembil.resources.v1.review import Reviews, Review
 from zembil.resources.v1.wishlist import WishLists, WishList
 from zembil.resources.v1.product import Product, Products, ShopProducts, SearchProduct, TrendingProduct, FilterProduct
 from zembil.resources.v1.advertisement import Advertisements, Advertisement
-
-from zembil.resources.v1.send_file import SendFile
+from zembil.resources.v1.upload import UploadShopImage, UploadProductImage
 
 API_VERSION_V1=1
 API_VERSION=API_VERSION_V1
 api_v1_bp = Blueprint('api_v1', __name__)
-CORS(api_v1_bp)
+CORS(api_v1_bp, supports_credentials=True)
 api_v1 = Api(api_v1_bp)
 
 api_v1.add_resource(Users, '/users')
@@ -38,12 +37,14 @@ api_v1.add_resource(ApproveShop, '/shops/<int:id>/status')
 api_v1.add_resource(ShopFollowers, '/shops/<int:shopid>/followers')
 api_v1.add_resource(ShopFollower, '/shops/<int:shopid>/followers/<int:id>')
 api_v1.add_resource(LocationNearMe, '/shops/nearme')
+api_v1.add_resource(UploadShopImage, '/shops/<int:shop_id>/upload')
 
 api_v1.add_resource(Reviews, '/products/<int:product_id>/reviews')
 api_v1.add_resource(Review, '/products/<int:product_id>/reviews/<int:id>')
 api_v1.add_resource(Products, '/products')
 api_v1.add_resource(Product, '/products/<int:id>')
 api_v1.add_resource(TrendingProduct, '/products/trending')
+api_v1.add_resource(UploadProductImage, '/products/<int:product_id>/upload')
 
 api_v1.add_resource(FilterProduct, '/filter/products')
 api_v1.add_resource(SearchProduct, '/search/products')
@@ -51,8 +52,6 @@ api_v1.add_resource(SearchShop, '/search/shops')
 
 api_v1.add_resource(WishList, '/cart/<int:id>')
 api_v1.add_resource(WishLists, '/cart')
-
-api_v1.add_resource(SendFile, '/uploads/<string:filename>')
 
 api_v1.add_resource(Advertisement, '/ads')
 api_v1.add_resource(Advertisements, '/ads/<int:id>')

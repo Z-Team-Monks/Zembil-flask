@@ -27,6 +27,10 @@ class Reviews(Resource):
             abort(400, message=errors.messages)
         args = clean_null_terms(args)
         user_id = get_jwt_identity()
+        user = UserModel.query.get(id)
+        product_exists = ProductModel.query.get(product_id)
+        if not product_exists:
+            abort(404, message="Product doesn't exist!")
         existing = ReviewModel.query.filter_by(user_id=user_id, product_id=product_id).first()
         if not existing and args:
             review = ReviewModel(
@@ -34,7 +38,13 @@ class Reviews(Resource):
                 user_id=user_id,
                 **args
             )
+            notification = NotificationModel(
+                    user_id=user_id,
+                    notification_message=f"{user.username} reviewed {product_exists.name} from your shop {product_exists.shop.name}.",
+                    notification_type="New Product"
+                )
             db.session.add(review)
+            db.session.add(notification)
             db.session.commit()
             return review_schema.dump(review), 201
         return abort(409, message="User already rated this product")

@@ -36,26 +36,28 @@ class Products(Resource):
     def post(self):
         data = request.get_json()
         try:
-            image = request.files['file']
-            if image and image.filename != '':
-                filename = secure_filename(image.filename)
-                image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
-                data['image'] = filename
-        except:
-            pass
-        try:
             args = product_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
         args = clean_null_terms(args)
         user_id = get_jwt_identity()
-        shop_owner = ShopModel.query.filter_by(user_id=user_id).first()
-        if shop_owner and args:
+        shop_exists = ShopModel.query.filter_by(user_id=user_id).first()
+        if shop_exists and shop_exists.user_id == user_id:
             product = ProductModel(**args)
             db.session.add(product)
+            followers = shop_exists.followers
+            for follower in followers:
+                notification = NotificationModel(
+                    user_id=follower.id,
+                    notification_message=f"{shop_exists.name} added new product {product.name}",
+                    notification_type="New Product"
+                )
+                db.session.add(notification)
             db.session.commit()
             return product_schema.dump(product), 201
-        abort(403, message="Shop doesn't belong to this user")
+        if shop_exists:
+            abort(403, message="Shop doesn't belong to this user")
+        abort(404, message="Shop doesn't exist")
 
 class Product(Resource):
     def get(self, id):
@@ -78,24 +80,22 @@ class Product(Resource):
     @jwt_required()
     def patch(self, id):
         data = request.get_json()
-        image = request.files['file']
-        if image and image.filename == '':
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(current_app.config['UPLOAD_FILE'], filename))
-            data['image'] = filename
         try:
             args = ProductSchema(partial=True).load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
         args = clean_null_terms(args)
-        existing = ProductModel.query.get(id)
-        if existing and args:
-            product = ProductModel.query.filter_by(id=id).update(args)
-            db.session.commit()
-            return product_schema.dump(product), 200
-        if not existing:
-            abort(404, message="Product doesn't exist!")
-        abort(400, message="Empty body was given")
+        if not args:
+            abort(400, message="Empty json body was given!")
+        user_id = get_jwt_identity()
+        existing = ProductModel.query.filter_by(id=id)
+        if existing.first():
+            if existing.first().shop.user_id == user_id:
+                product = existing.update(args)
+                db.session.commit()
+                return product_schema.dump(existing.first()), 200
+            abort(403, message="Product doesn't belong to this user!")
+        abort(404, message="Product doesn't exist!")
 
 class ShopProducts(Resource):
     def get(self, shop_id):

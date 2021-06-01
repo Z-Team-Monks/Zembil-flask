@@ -36,6 +36,7 @@ class ShopModel(db.Model):
     building_name = db.Column(db.String(100), nullable=False)
     phone_number1 = db.Column(db.String(50), nullable=True)
     phone_number2 = db.Column(db.String(50), nullable=True)
+    image = db.Column(db.String(100), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -149,5 +150,6 @@ class NoificationModel(db.Model):
     __tablename__ = "notification"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    notification_message = db.Column(db.Text, nullable=True)
+    notification_message = db.Column(db.String, nullable=False)
+    notification_type = db.Column(db.String, nullable=True)
     seen = db.Column(db.Boolean, nullable=False, default=False)
