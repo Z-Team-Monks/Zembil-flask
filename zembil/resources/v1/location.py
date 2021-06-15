@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource, abort
-from sqlalchemy import func, asc
+from sqlalchemy import func
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import LocationModel
@@ -21,8 +21,8 @@ class Locations(Resource):
         except ValidationError as errors:
             abort(400, message=errors.messages)
         existingLocation = LocationModel.query.filter_by(
-            latitude=location_args['latitude'],
-            longitude=location_args['longitude']
+            latitude=args['latitude'],
+            longitude=args['longitude']
         )
         if existingLocation:
             abort(409, message="Shop with this location already exists")
@@ -61,4 +61,4 @@ class LocationNearMe(Resource):
                 * func.cos(func.radians(LocationModel.longitude) \
                 - (func.radians(longitude)))) * 6371 <= radius)
             return locations_schema.dump(locations)
-        abort(400)
+        abort(400, message="No shops found near your location")

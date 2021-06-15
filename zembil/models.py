@@ -146,7 +146,7 @@ class RevokedTokenModel(db.Model):
         return bool(query)
 
 
-class NoificationModel(db.Model):
+class NotificationModel(db.Model):
     __tablename__ = "notification"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

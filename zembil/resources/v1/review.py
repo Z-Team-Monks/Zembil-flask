@@ -3,7 +3,9 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
-from zembil.models import ReviewModel, ProductModel
+from zembil.models import (
+    ReviewModel, ProductModel, UserModel, NotificationModel
+    )
 from zembil.schemas import ReviewSchema, ProductReviewSchema
 from zembil.common.util import clean_null_terms
 

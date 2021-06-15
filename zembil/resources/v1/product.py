@@ -3,9 +3,10 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from sqlalchemy import func
-from werkzeug.utils import secure_filename
 from zembil import db
-from zembil.models import ProductModel, ShopModel, CategoryModel, ReviewModel
+from zembil.models import (
+    ProductModel, ShopModel, CategoryModel, ReviewModel, NotificationModel
+    )
 from zembil.schemas import ProductSchema, ShopProductSchema, RatingSchema
 from zembil.common.util import clean_null_terms
 from zembil.common.helper import PaginationHelper
