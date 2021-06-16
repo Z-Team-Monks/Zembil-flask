@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_mail import Mail
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
@@ -20,6 +21,7 @@ limiter = Limiter(
 )
 # csrf = CSRFProtect()
 jwt = JWTManager()
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static')
@@ -30,6 +32,7 @@ def create_app(config_class=Config):
     # csrf.init_app(app)
     limiter.init_app(app)
     db.init_app(app)
+    mail.init_app(app)
 
     from zembil.v1 import api_v1, api_v1_bp, API_VERSION_V1
     

@@ -1,7 +1,5 @@
 from datetime import datetime
 from zembil import db, bcrypt
-
-
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app as app
 
@@ -36,12 +34,12 @@ class UserModel(db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def get_reset_token(self, expires_in=18000):
-        s = Serializer(app['SECRET_KEY'], expires_in)
+        s = Serializer(app.config['SECRET_KEY'], expires_in)
         return s.dumps({'user_id': self.id}).decode('utf-8')
 
     @staticmethod
     def verify_reset_token(token):
-        s = Serializer(app['SECRET_KEY'])
+        s = Serializer(app.config['SECRET_KEY'])
         try:
             user_id = s.loads(token)['user_id']
         except:

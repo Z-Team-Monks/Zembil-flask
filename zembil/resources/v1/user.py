@@ -5,12 +5,12 @@ from flask_restful import Resource, abort, reqparse
 from flask_jwt_extended import (create_access_token, get_jwt,
                                 jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
-from zembil import db
+from zembil import db, mail
 from zembil.models import UserModel, RevokedTokenModel, ShopModel, AdvertisementModel, ProductModel
 from zembil.schemas import UserSchema
 from zembil.common.util import clean_null_terms
 
-from flask_mail import Mail, Message
+from flask_mail import Message
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
@@ -106,20 +106,19 @@ class PasswordReset(Resource):
         if not user:
             return abort(404, message="No user with this email!")
 
-        # reset_token = user.get_reset_token(1800)
-        # full_url = host + '/auth/reset?token=' + reset_token
-        # try:
-        #     # send emial
-        #     mail = Mail(current_app)
-        #     msg = Message('Password reset token',
-        #                   sender='noreply@zembil.com', recipients=[user.email])
-        #     msg.body = f''' To reset your password visit the following link: \n{full_url} \n\nIf you did not send this email then ignore this email.'''
-        #     mail.send(msg)
+        reset_token = user.get_reset_token(1800)
+        full_url = host + '/auth/reset?token=' + reset_token
+        try:
+            # send emial
+            msg = Message('Password reset token',
+                          sender='noreply@zembil.com', 
+                          recipients=[user.email])
+            msg.body = f''' To reset your password visit the following link: \n{full_url} \n\nIf you did not send this email then ignore this email.'''
+            mail.send(msg)
 
-        #     return {"status": "success", "message": f"Reset token sent to {email}"}, 200
-        # except:
-        #     return {"status": "fail", "message": "Could not send email!"}, 500
-
+            return {"status": "success", "message": f"Reset token sent to {email}"}, 200
+        except:
+            abort(500, message="Couldn't send an email.")
 
 class VerifyToken(Resource):
     def post(self):
@@ -134,7 +133,7 @@ class VerifyToken(Resource):
         user.password = password
         db.session.commit()
 
-        return {'status': 'success', 'message': 'Password reset successful'}, 200
+        return {'message': 'Password reset successful'}, 200
 
 
 class AdminUser(Resource):
