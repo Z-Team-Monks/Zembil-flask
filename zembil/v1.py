@@ -40,7 +40,6 @@ api_v1.add_resource(product.ShopProducts, '/shops/<int:shop_id>/products')
 api_v1.add_resource(shop.ApproveShop, '/shops/<int:id>/status')
 api_v1.add_resource(shopfollow.ShopFollowers, '/shops/<int:shopid>/followers')
 api_v1.add_resource(shopfollow.ShopFollower, '/shops/<int:shopid>/followers/<int:id>')
-api_v1.add_resource(location.LocationNearMe, '/shops/nearme')
 api_v1.add_resource(upload.UploadShopImage, '/shops/<int:shop_id>/uploads')
 
 api_v1.add_resource(review.Reviews, '/products/<int:product_id>/reviews')
@@ -53,6 +52,7 @@ api_v1.add_resource(upload.UploadProductImage, '/products/<int:product_id>/uploa
 api_v1.add_resource(product.FilterProduct, '/filter/products')
 api_v1.add_resource(product.SearchProduct, '/search/products')
 api_v1.add_resource(shop.SearchShop, '/search/shops')
+api_v1.add_resource(location.LocationNearMe, '/search/shops/nearme')
 
 api_v1.add_resource(wishlist.WishList, '/cart/<int:id>')
 api_v1.add_resource(wishlist.WishLists, '/cart')

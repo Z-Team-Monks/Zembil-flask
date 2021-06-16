@@ -6,8 +6,8 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=True)
     username = db.Column(db.String, unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(300), unique=True, nullable=False)
+    password_hash = db.Column(db.String(300), nullable=False)
     role = db.Column(db.String(10), nullable=False, default='user')
     phone = db.Column(db.String(50), nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -33,10 +33,10 @@ class ShopModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    building_name = db.Column(db.String(100), nullable=False)
+    building_name = db.Column(db.String(300), nullable=False)
     phone_number1 = db.Column(db.String(50), nullable=True)
     phone_number2 = db.Column(db.String(50), nullable=True)
-    image = db.Column(db.String(100), nullable=True)
+    image = db.Column(db.String(300), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -46,7 +46,7 @@ class ShopModel(db.Model):
     location = db.relationship('LocationModel', back_populates='shop', cascade="all,delete")
     category = db.relationship('CategoryModel', back_populates='shops')
     products = db.relationship('ProductModel', back_populates='shop')
-    advertisments = db.relationship('AdvertisementModel', backref='shop', lazy=True)
+    ads = db.relationship('AdvertisementModel', backref='shop', lazy=True)
     followers = db.relationship('ShopFollowerModel', back_populates='shop')
 
 class ShopFollowerModel(db.Model):
@@ -66,12 +66,12 @@ class ProductModel(db.Model):
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
     brand = db.Column(db.String, nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(300), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
     condition = db.Column(db.String(30), nullable=False)
-    image = db.Column(db.String(100), nullable=True)
+    image = db.Column(db.String(300), nullable=True)
     delivery_available = db.Column(db.Boolean, nullable=False, default=False)
     discount = db.Column(db.Float, nullable=False, default=0.0)
     product_count = db.Column(db.Integer, nullable=False, default=1)
@@ -98,7 +98,7 @@ class LocationModel(db.Model):
     description = db.Column(db.Text, nullable=True)
     __table_args__ = (db.UniqueConstraint('latitude', 'longitude'), )
 
-    shop = db.relationship('ShopModel', uselist=False, back_populates='location')
+    shop = db.relationship('ShopModel', back_populates='location')
 
 class ReviewModel(db.Model):
     __tablename__ = "review"
@@ -135,7 +135,6 @@ class AdvertisementModel(db.Model):
     end_date = db.Column(db.DateTime, nullable=True, default=None)
     is_active = db.Column(db.Boolean, nullable=False, default=False)
     
-
 class RevokedTokenModel(db.Model):
     __tablename__ = "revoked_tokens"
     id = db.Column(db.Integer, primary_key=True)

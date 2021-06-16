@@ -6,7 +6,7 @@ from zembil.models import *
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "username", "password", "email", "date", "role", "phone")
+        fields = ("id", "name", "username", "password", "email", "date", "role", "phone", "shops_followed")
         model = UserModel
         ordered = True
     id = fields.Integer(dump_only=True, data_key="userId")
@@ -85,6 +85,14 @@ class ShopSchema(ma.Schema):
         if not rule.search(value):
             msg = u"Invalid mobile number."
             raise ValidationError(msg)
+
+class ShopLocationSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "longitude", "latitude", "description", "shop")
+        model = LocationModel
+        ordered = True
+    shop = ma.Nested(ShopSchema)
+
 
 class RatingSchema(ma.Schema):
     class Meta:

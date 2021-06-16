@@ -4,10 +4,10 @@ from sqlalchemy import func
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import LocationModel
-from zembil.schemas import LocationSchema
+from zembil.schemas import LocationSchema, ShopLocationSchema
 
 location_schema = LocationSchema()
-locations_schema = LocationSchema(many=True)
+locations_schema = ShopLocationSchema(many=True)
 
 class Locations(Resource):
     def get(self):
@@ -45,9 +45,9 @@ class Location(Resource):
 
 class LocationNearMe(Resource):
     def get(self):
-        latitude = request.args.get('lat')
-        longitude = request.args.get('long')
-        radius = request.args.get('range')
+        latitude = request.args.get('latitude')
+        longitude = request.args.get('longitude')
+        radius = request.args.get('radius')
         if not radius:
             radius = 10
         if latitude and longitude:
