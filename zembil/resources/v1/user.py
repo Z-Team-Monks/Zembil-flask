@@ -1,19 +1,35 @@
 from datetime import timedelta
 from flask import current_app, request
+from markupsafe import escape
 from flask_restful import Resource, fields, abort, reqparse
-from flask_jwt_extended import ( create_access_token, get_jwt,
-                            jwt_required, get_jwt_identity)
+from flask_jwt_extended import (create_access_token, get_jwt,
+                                jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import UserModel, RevokedTokenModel
 from zembil.schemas import UserSchema
 from zembil.common.util import clean_null_terms
 
+from flask_mail import Mail, Message
+
 user_schema = UserSchema()
 
 user_auth_arguments = reqparse.RequestParser()
-user_auth_arguments.add_argument('username', type=str, help="Username", required=True)
-user_auth_arguments.add_argument('password', type=str, help="Password", required=True)
+user_auth_arguments.add_argument(
+    'username', type=str, help="Username", required=True)
+user_auth_arguments.add_argument(
+    'password', type=str, help="Password", required=True)
+
+auth_reset_arguments = reqparse.RequestParser()
+auth_reset_arguments.add_argument(
+    'email', type=str, help="Enter your associated email", required=True)
+auth_reset_arguments.add_argument(
+    'host', type=str, help="Provide the client host address", required=True)
+
+new_passwd_arguments = reqparse.RequestParser()
+new_passwd_arguments.add_argument(
+    'new_password', type=str, help='Enter new password', required=True)
+
 
 class Users(Resource):
     def post(self):
@@ -62,11 +78,51 @@ class Authorize(Resource):
             expires = timedelta(days=30)
             additional_claims = {"role": user.role}
             token = create_access_token(
-                identity=user.id, 
+                identity=user.id,
                 expires_delta=expires,
                 additional_claims=additional_claims)
             return {'token': token}
         return abort(401, message="Incorrect Username or password")
+
+
+class PasswordReset(Resource):
+    def post(self):
+        args = auth_reset_arguments.parse_args()
+        email = escape(args['email'])
+        host = escape(args['host'])
+        user = UserModel.query.filter_by(email=email).first()
+        if not user:
+            return abort(404, message="No user with this email!")
+
+        # reset_token = user.get_reset_token(1800)
+        # full_url = host + '/auth/reset?token=' + reset_token
+        # try:
+        #     # send emial
+        #     mail = Mail(current_app)
+        #     msg = Message('Password reset token',
+        #                   sender='noreply@zembil.com', recipients=[user.email])
+        #     msg.body = f''' To reset your password visit the following link: \n{full_url} \n\nIf you did not send this email then ignore this email.'''
+        #     mail.send(msg)
+
+        #     return {"status": "success", "message": f"Reset token sent to {email}"}, 200
+        # except:
+        #     return {"status": "fail", "message": "Could not send email!"}, 500
+
+
+class VerifyToken(Resource):
+    def post(self):
+        token = request.args.get()['token']
+        password = new_passwd_arguments.parse_args()['new_password']
+        if not token:
+            return abort(400, message="Invalid password reset token!")
+        user = UserModel.verify_reset_token(token)
+        if user is None:
+            return abort(400, message="Invalid or expired password reset token!")
+
+        user.password = password
+        db.session.commit()
+
+        return {'status': 'success', 'message': 'Password reset successful'}, 200
 
 
 class AdminUser(Resource):
@@ -80,7 +136,8 @@ class AdminUser(Resource):
             args = user_schema.load(data)
         except ValidationError as errors:
             abort(400, message=errors.messages)
-        user = UserModel(username=args['username'], email=args['email'], password=args['password_hash'], role='admin', phone=args['phone'])
+        user = UserModel(username=args['username'], email=args['email'],
+                         password=args['password_hash'], role='admin', phone=args['phone'])
         db.session.add(user)
         db.session.commit()
         return user_schema.dump(user), 201

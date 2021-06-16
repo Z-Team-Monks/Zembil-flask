@@ -4,15 +4,18 @@ from marshmallow import fields, Schema, validate, validates, ValidationError
 from zembil import ma
 from zembil.models import *
 
+
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "username", "password", "email", "date", "role", "phone")
+        fields = ("id", "name", "username", "password",
+                  "email", "date", "role", "phone")
         model = UserModel
         ordered = True
     id = fields.Integer(dump_only=True, data_key="userId")
     name = fields.String(required=False)
     username = fields.String(required=True)
-    password = fields.String(required=True, load_only=True, data_key="password")
+    password = fields.String(
+        required=True, load_only=True, data_key="password")
     email = fields.Email(required=True)
     role = fields.String(load_only=True)
     phone = fields.String(required=False)
@@ -41,28 +44,34 @@ class UserSchema(ma.Schema):
                 '"{email}" email already exists, '
                 'please use a different email.'.format(email=email)
             )
-    
+
 
 class LocationSchema(ma.Schema):
     class Meta:
         fields = ("id", "longitude", "latitude", "description")
         model = LocationModel
         ordered = True
-    longitude = fields.Float(required=True, validate=lambda n: n > -180 and n < 180)
-    latitude = fields.Float(required=True, validate=lambda n: n > -90 and n < 90)
-    description = fields.String(required=True, validate=validate.Length(5), data_key="locationName")
+    longitude = fields.Float(
+        required=True, validate=lambda n: n > -180 and n < 180)
+    latitude = fields.Float(
+        required=True, validate=lambda n: n > -90 and n < 90)
+    description = fields.String(
+        required=True, validate=validate.Length(5), data_key="locationName")
+
 
 class CategorySchema(ma.Schema):
     class Meta:
         fields = ("id", "name")
         model = CategoryModel
         ordered = True
-    name = fields.String(required=True, validate=lambda n: n.isalpha(), data_key="categoryName")
+    name = fields.String(
+        required=True, validate=lambda n: n.isalpha(), data_key="categoryName")
+
 
 class ShopSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1", 
-        "phone_number2", "category", "description", "status")
+        fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1",
+                  "phone_number2", "category", "description", "status")
         model = ShopModel
         ordered = True
     name = fields.String(required=False)
@@ -92,6 +101,7 @@ class ShopSchema(ma.Schema):
         if not re.match(r'[a-zA-Z\s]+$', value):
             raise ValidationError("Invalid first name and last name")
 
+
 class RatingSchema(ma.Schema):
     class Meta:
         fields = ("ratingcount", "averageRating")
@@ -99,11 +109,12 @@ class RatingSchema(ma.Schema):
     averageRating = fields.Float(dump_only=True)
     ratingcount = fields.Integer(dump_only=True)
 
+
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop_id", "brand", "name", "date", 
-        "description", "category", "category_id", "price", "condition", "image", 
-        "delivery_available", "discount", "product_count", "rating")
+        fields = ("id", "shop_id", "brand", "name", "date",
+                  "description", "category", "category_id", "price", "condition", "image",
+                  "delivery_available", "discount", "product_count", "rating")
         model = ProductModel
         ordered = True
     id = fields.Integer(dump_only=True, data_key="productId")
@@ -117,23 +128,27 @@ class ProductSchema(ma.Schema):
     price = fields.Float(required=True, validate=lambda n: n > 0)
     condition = fields.String(required=True, validate=lambda n: n.isalpha())
     image = fields.String(required=False, data_key="imageUrl")
-    delivery_available = fields.Boolean(required=False, data_key="deliveryAvailable")
+    delivery_available = fields.Boolean(
+        required=False, data_key="deliveryAvailable")
     discount = fields.Float(required=False, validate=lambda n: n >= 0)
-    product_count = fields.Integer(required=False, validate=lambda n: n >= 0, data_key="productCount")
+    product_count = fields.Integer(
+        required=False, validate=lambda n: n >= 0, data_key="productCount")
     rating = fields.Float(dump_only=True)
 
     @validates("image")
     def validate_url(self, value):
         regex = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            # domain...
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         if not re.match(regex, value):
             msg = u"Invalid image url."
             raise ValidationError(msg)
+
 
 class ShopProductSchema(ma.Schema):
     class Meta:
@@ -167,7 +182,8 @@ class AdvertisementSchema(ma.Schema):
 
 class ReviewSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user", "user_id", "product_id", "rating", "review_text", "date")
+        fields = ("id", "user", "user_id", "product_id",
+                  "rating", "review_text", "date")
         model = ReviewModel
         ordered = True
     rating = fields.Integer(required=False, validate=lambda n: n > 0 and n < 6)
@@ -177,6 +193,7 @@ class ReviewSchema(ma.Schema):
     product_id = fields.Integer(dump_only=True, data_key="productId")
     date = fields.DateTime(dump_only=True, data_key="reviewDate")
 
+
 class ProductReviewSchema(ma.Schema):
     class Meta:
         fields = ("id", "reviews")
@@ -185,12 +202,14 @@ class ProductReviewSchema(ma.Schema):
     id = fields.Integer(data_key="productId")
     reviews = ma.Nested(ReviewSchema(many=True), data_key="productReviews")
 
+
 class CategoryShopsSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "shops")
         model = CategoryModel
         ordered = True
     shops = ma.Nested(ShopSchema(many=True))
+
 
 class WishListSchema(ma.Schema):
     class Meta:
@@ -203,12 +222,14 @@ class WishListSchema(ma.Schema):
     date = fields.DateTime(dump_only=True, data_key="dateAdded")
     product = ma.Nested(ProductSchema)
 
+
 class UserWishListSchema(ma.Schema):
     class Meta:
         fields = ("id", "username", "email", "role", "phone", "wishlists")
         model = UserModel
         ordered = True
     wishlists = ma.List(ma.Nested(WishListSchema))
+
 
 class ShopFollowerSchema(ma.Schema):
     class Meta:
@@ -218,23 +239,26 @@ class ShopFollowerSchema(ma.Schema):
     user_id = fields.Integer(data_key="userId")
     shop_id = fields.Integer(data_key="shopId")
 
+
 class TotalShopFollowerSchema(ma.Schema):
     class Meta:
         fields = ("id", "building_name", "phone_number1", "phone_number2",
-         "description", "shoplikes")
+                  "description", "shoplikes")
         model = ShopModel
         ordered = True
     id = fields.Integer(data_key="shopId")
     user = ma.Nested(UserSchema)
     shoplikes = ma.List(ma.Nested(ShopFollowerSchema))
 
+
 class NotificationSchema(ma.Schema):
     class Meta:
-        fields = ("id", "user_id", "notification_message", "notification_type" "seen")
+        fields = ("id", "user_id", "notification_message",
+                  "notification_type" "seen")
     id = fields.Integer(dump_only=True, data_key="notificationId")
     user_id = fields.String(dump_only=True, data_key="userId")
-    notification_message = fields.String(dump_only=True, data_key="notificationMessage")
-    notification_type = fields.String(dump_only=True, data_key="notificationType")
+    notification_message = fields.String(
+        dump_only=True, data_key="notificationMessage")
+    notification_type = fields.String(
+        dump_only=True, data_key="notificationType")
     seen = fields.Boolean(dump_only=True, data_key="seen")
-
-

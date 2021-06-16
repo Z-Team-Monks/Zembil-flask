@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask_restful import Api
 from flask_cors import CORS
-from zembil.resources.v1.user import User, Users, Authorize, UserLogout, AdminUser
+from zembil.resources.v1.user import User, Users, Authorize, UserLogout, AdminUser, PasswordReset, VerifyToken
 from zembil.resources.v1.shop import Shop, Shops, SearchShop, ApproveShop
 from zembil.resources.v1.category import Category, Categories
 from zembil.resources.v1.location import Location, Locations, LocationNearMe
@@ -12,8 +12,8 @@ from zembil.resources.v1.product import Product, Products, ShopProducts, SearchP
 from zembil.resources.v1.advertisement import Advertisements, Advertisement
 from zembil.resources.v1.upload import UploadShopImage, UploadProductImage
 
-API_VERSION_V1=1
-API_VERSION=API_VERSION_V1
+API_VERSION_V1 = 1
+API_VERSION = API_VERSION_V1
 api_v1_bp = Blueprint('api_v1', __name__)
 CORS(api_v1_bp, supports_credentials=True)
 api_v1 = Api(api_v1_bp)
@@ -23,6 +23,9 @@ api_v1.add_resource(User, '/users/<int:id>')
 api_v1.add_resource(Authorize, '/auth')
 api_v1.add_resource(UserLogout, '/users/logout')
 api_v1.add_resource(AdminUser, '/admin')
+
+api_v1.add_resource(PasswordReset, '/auth/forgot')
+api_v1.add_resource(VerifyToken, '/auth/reset')
 
 api_v1.add_resource(Categories, '/categories')
 api_v1.add_resource(Category, '/categories/<int:id>')
