@@ -9,5 +9,5 @@ class Config:
     UPLOAD_FOLDER = './zembil/static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     CORS_HEADERS = 'Content-Type'
-    PAGINATION_PAGE_SIZE = 5
+    PAGINATION_PAGE_SIZE = 9
     PAGINATION_PAGE_ARGUMENT_NAME = 'page'

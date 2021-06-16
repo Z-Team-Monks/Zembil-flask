@@ -34,7 +34,7 @@ class Shops(Resource):
             existing_location = LocationModel.query.filter_by(
                 latitude=location_args['latitude'],
                 longitude=location_args['longitude']
-                )
+                ).first()
             if existing_location:
                 abort(409, message="Shop with this location already exists")
             try:
@@ -42,19 +42,18 @@ class Shops(Resource):
                     **location_args
                 )
                 db.session.add(location)
-                db.session.commit()
             except:
                 abort(500, message="Database error")
             try:
                 shop = ShopModel(
                     user_id=user_id,
-                    location_id=location.id, 
                     **shop_args)
+                shop.location = location
                 db.session.add(shop)
-                db.session.commit()
             except:
                 abort(500, message="Database error")
             
+            db.session.commit()
             return shop_schema.dump(shop), 201
         abort(404, message="User Doesn't Exist")
 
@@ -86,13 +85,26 @@ class Shop(Resource):
             abort(403, message="Shop doesn't belong to this user!")
         abort(404, message="Shop doesn't exist!")
 
+    @jwt_required()
     def delete(self, id):
+        user_id = get_jwt_identity()
         shop = ShopModel.query.get(id)
-        if shop:
+        if shop and shop.user_id == user_id:
             db.session.delete(shop)
             db.session.commit()
             return 204
-        return abort(404, message="Shop doesn't exist!")
+        if shop:
+            abort(403, message="User is not owner of this shop!")
+        abort(404, message="Shop doesn't exist!")
+
+
+class UserShops(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.query.get(user_id)
+        return shops_schema.dump(user.shops)
+
 
 class SearchShop(Resource):
     def get(self):
@@ -116,7 +128,10 @@ class ApproveShop(Resource):
         role = get_jwt()['role']
         if role == 'user':
             abort(403, message="Higher Privelege required")
-        shop = ShopModel.query.get(id)
-        shop.status = status
+        shop = ShopModel.query.filter_by(id=id)
+        if not status:
+              shop.delete()
+        else:  
+            shop.first().status = status
         db.session.commit()
         return shop_schema.dump(shop), 204
