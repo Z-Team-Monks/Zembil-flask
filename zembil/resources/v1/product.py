@@ -43,6 +43,8 @@ class Products(Resource):
         args = clean_null_terms(args)
         user_id = get_jwt_identity()
         shop_exists = ShopModel.query.filter_by(user_id=user_id).first()
+        # if not shop_exists.status:
+        #     abort(403, message="Shop status pending!")
         if shop_exists and shop_exists.user_id == user_id:
             product = ProductModel(**args)
             db.session.add(product)

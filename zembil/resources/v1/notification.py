@@ -10,8 +10,8 @@ class Notification(Resource):
     @jwt_required()
     def get(self):
         user_id = get_jwt_identity()
-        notification = NotificationModel.query.filter_by(id)
-        if notification and notification.first().use_id == user_id:
+        notification = NotificationModel.query.filter_by(id=user_id)
+        if notification and notification.first().user_id == user_id:
             notification.update({"seen": True})
             db.session.commit()
             return notifications_schema.dump(notification.all())

@@ -164,6 +164,7 @@ class AdvertisementModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     start_date = db.Column(db.DateTime, nullable=True, default=None)
     end_date = db.Column(db.DateTime, nullable=True, default=None)
     is_active = db.Column(db.Boolean, nullable=False, default=False)

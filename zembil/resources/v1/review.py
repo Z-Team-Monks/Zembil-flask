@@ -29,7 +29,7 @@ class Reviews(Resource):
             abort(400, message=errors.messages)
         args = clean_null_terms(args)
         user_id = get_jwt_identity()
-        user = UserModel.query.get(id)
+        user = UserModel.query.get(user_id)
         product_exists = ProductModel.query.get(product_id)
         if not product_exists:
             abort(404, message="Product doesn't exist!")

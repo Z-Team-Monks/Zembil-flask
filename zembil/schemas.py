@@ -1,6 +1,6 @@
 import datetime
 import re
-from marshmallow import fields, Schema, validate, validates, ValidationError
+from marshmallow import fields, validate, validates, ValidationError
 from zembil import ma
 from zembil.models import *
 
@@ -17,7 +17,7 @@ class UserSchema(ma.Schema):
     password = fields.String(
         required=True, load_only=True, data_key="password")
     email = fields.Email(required=True)
-    role = fields.String(load_only=True)
+    role = fields.String()
     phone = fields.String(required=False)
     date = fields.DateTime(dump_only=True, data_key="dateAccountCreated")
 
@@ -33,16 +33,14 @@ class UserSchema(ma.Schema):
     def validate_username(self, username):
         if bool(UserModel.query.filter_by(username=username).first()):
             raise ValidationError(
-                '"{username}" username already exists, '
-                'please use a different username.'.format(username=username)
+                'username already exists, please use a different username.'
             )
 
     @validates("email")
-    def validate_username(self, email):
+    def validate_email(self, email):
         if bool(UserModel.query.filter_by(email=email).first()):
             raise ValidationError(
-                '"{email}" email already exists, '
-                'please use a different email.'.format(email=email)
+                'email already exists, please use a different email.'
             )
 
 
@@ -64,25 +62,25 @@ class CategorySchema(ma.Schema):
         fields = ("id", "name")
         model = CategoryModel
         ordered = True
-    name = fields.String(
-        required=True, validate=lambda n: n.isalpha(), data_key="categoryName")
+    name = fields.String(required=True, data_key="categoryName")
 
 
 class ShopSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1",
-                  "phone_number2", "category", "description", "status")
+                  "phone_number2", "category", "image", "description", "status")
         model = ShopModel
         ordered = True
-    name = fields.String(required=False)
+    name = fields.String(required=False, data_key="shopName")
     user_id = fields.Integer(data_key="userId")
     category_id = fields.Integer(required=True, data_key="categoryId")
     location_id = fields.Integer(data_key="shopLocationId")
+    image = fields.String(required=False, data_key="imageUrl")
     category = fields.Pluck(CategorySchema, "name", dump_only=True)
-    building_name = fields.String(required=True, data_key="buildingName")
+    building_name = fields.String(required=False, data_key="buildingName")
     phone_number1 = fields.String(required=False, data_key="phoneNumber")
     phone_number2 = fields.String(required=False, data_key="phoneNumber2")
-    description = fields.String(required=True, validate=validate.Length(5))
+    description = fields.String(required=True)
     status = fields.Boolean(dump_only=True, data_key="isActive")
 
     location = ma.Nested(LocationSchema)
@@ -95,11 +93,6 @@ class ShopSchema(ma.Schema):
         if not rule.search(value):
             msg = u"Invalid mobile number."
             raise ValidationError(msg)
-
-    @validates("name")
-    def validate_name(self, value):
-        if not re.match(r'[a-zA-Z\s]+$', value):
-            raise ValidationError("Invalid first name and last name")
 
 
 class RatingSchema(ma.Schema):
@@ -126,7 +119,7 @@ class ProductSchema(ma.Schema):
     category = fields.Pluck(CategorySchema, 'name', dump_only=True)
     description = fields.String(required=True, validate=validate.Length(5))
     price = fields.Float(required=True, validate=lambda n: n > 0)
-    condition = fields.String(required=True, validate=lambda n: n.isalpha())
+    condition = fields.String(required=True)
     image = fields.String(required=False, data_key="imageUrl")
     delivery_available = fields.Boolean(
         required=False, data_key="deliveryAvailable")
@@ -161,11 +154,12 @@ class ShopProductSchema(ma.Schema):
 
 class AdvertisementSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop_id", "start_date", "end_date")
+        fields = ("id", "shop_id", "start_date", "end_date", "description")
     id = fields.Integer(dump_only=True)
     shop_id = fields.Integer(data_key="shopId")
     start_date = fields.Date(data_key="startDate")
     end_date = fields.Date(data_key="endDate")
+    description = fields.String()
 
     @validates("start_date")
     @validates("end_date")

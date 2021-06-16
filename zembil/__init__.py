@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_restful import Resource, Api, reqparse, abort 
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
@@ -14,6 +13,7 @@ from zembil.config import Config
 db = SQLAlchemy()
 ma = Marshmallow()
 bcrypt = Bcrypt()
+cors = CORS()
 limiter = Limiter(
     key_func=get_remote_address, 
     default_limits=["5000 per day", "50 per minute"]
@@ -24,6 +24,8 @@ jwt = JWTManager()
 def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
+    
+    CORS(app, supports_credentials=True)
     jwt.init_app(app)
     # csrf.init_app(app)
     limiter.init_app(app)
