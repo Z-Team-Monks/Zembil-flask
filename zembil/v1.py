@@ -13,8 +13,8 @@ import zembil.resources.v1.advertisement as ads
 import zembil.resources.v1.upload as upload
 import zembil.resources.v1.notification as notification
 
-API_VERSION_V1=1
-API_VERSION=API_VERSION_V1
+API_VERSION_V1 = 1
+API_VERSION = API_VERSION_V1
 api_v1_bp = Blueprint('api_v1', __name__)
 CORS(api_v1_bp, supports_credentials=True)
 api_v1 = Api(api_v1_bp)
@@ -27,6 +27,9 @@ api_v1.add_resource(user.AdminUser, '/admin')
 api_v1.add_resource(user.AdminStatus, '/admin/status')
 api_v1.add_resource(notification.Notification, '/users/notification')
 api_v1.add_resource(shop.UserShops, '/users/shops')
+
+api_v1.add_resource(user.PasswordReset, '/auth/forgot')
+api_v1.add_resource(user.VerifyToken, '/auth/reset')
 
 api_v1.add_resource(category.Categories, '/categories')
 api_v1.add_resource(category.Category, '/categories/<int:id>')
@@ -43,11 +46,13 @@ api_v1.add_resource(shopfollow.ShopFollower, '/shops/<int:shopid>/followers/<int
 api_v1.add_resource(upload.UploadShopImage, '/shops/<int:shop_id>/uploads')
 
 api_v1.add_resource(review.Reviews, '/products/<int:product_id>/reviews')
-api_v1.add_resource(review.Review, '/products/<int:product_id>/reviews/<int:id>')
+api_v1.add_resource(
+    review.Review, '/products/<int:product_id>/reviews/<int:id>')
 api_v1.add_resource(product.Products, '/products')
 api_v1.add_resource(product.Product, '/products/<int:id>')
 api_v1.add_resource(product.TrendingProduct, '/products/trending')
-api_v1.add_resource(upload.UploadProductImage, '/products/<int:product_id>/uploads')
+api_v1.add_resource(upload.UploadProductImage,
+                    '/products/<int:product_id>/uploads')
 
 api_v1.add_resource(product.FilterProduct, '/filter/products')
 api_v1.add_resource(product.SearchProduct, '/search/products')
