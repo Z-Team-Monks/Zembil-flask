@@ -42,7 +42,7 @@ api_v1.add_resource(shop.Shop, '/shops/<int:id>')
 api_v1.add_resource(product.ShopProducts, '/shops/<int:shop_id>/products')
 api_v1.add_resource(product.UserProducts, '/shops/products')
 api_v1.add_resource(shop.ApproveShop, '/shops/<int:id>/status')
-api_v1.add_resource(shopfollow.ShopFollowers, '/shops/<int:shopid>/followers')
+api_v1.add_resource(shopfollow.ShopFollowers, '/shops/<int:shopid>/followers', methods=['GET', 'POST', 'DELETE'])
 api_v1.add_resource(upload.UploadShopImage, '/shops/<int:shop_id>/uploads')
 
 api_v1.add_resource(review.Reviews, '/products/<int:product_id>/reviews')

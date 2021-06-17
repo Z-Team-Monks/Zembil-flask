@@ -151,13 +151,14 @@ class ShopProductSchema(ma.Schema):
 
 class AdvertisementSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop_id", "discount", "start_date", "end_date", "description", "shop")
+        fields = ("id", "shop_id", "discount", "is_active",  "start_date", "end_date", "description", "shop")
     id = fields.Integer(dump_only=True)
     shop_id = fields.Integer(required=True, data_key="shopId")
     start_date = fields.Date(required=True, data_key="startDate")
     end_date = fields.Date(required=True, data_key="endDate")
     description = fields.String()
-    discount = fields.Float(required=True, )
+    discount = fields.Float(required=True)
+    is_active = fields.Boolean(dump_only=True)
 
     shop = ma.Nested(ShopSchema)
 

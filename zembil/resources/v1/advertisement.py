@@ -1,5 +1,5 @@
 from flask import request
-from flask_restful import Resource, abort
+from flask_restful import Resource, abort, reqparse
 from flask_jwt_extended import ( jwt_required, get_jwt, get_jwt_identity)
 from marshmallow import ValidationError
 from zembil import db
@@ -10,11 +10,16 @@ from zembil.common.util import clean_null_terms
 advertisement_schema = AdvertisementSchema()
 advertisements_schema = AdvertisementSchema(many=True)
 
+ad_arguments = reqparse.RequestParser()
+ad_arguments.add_argument(
+    'is_active', type=bool, help="is_active", required=True)
+
 class Advertisements(Resource):
     def get(self):
         ads = AdvertisementModel.query.all()
         return advertisements_schema.dump(ads)
 
+    # @jwt_required()
     def post(self):
         data = request.get_json()
         try:
@@ -42,12 +47,8 @@ class Advertisement(Resource):
         role = get_jwt()['role']
         if role == 'user':
             abort(403, message="Requires admin privelege")
-        data = request.get_json()
-        try:
-            args = AdvertisementSchema(partial=True).load(data)
-        except ValidationError as errors:
-            abort(400, message=errors.messages)
-        args = clean_null_terms(args)
+        args = ad_arguments.parse_args()
+        # args = clean_null_terms(args)
         if not args:
             abort(400, message="Empty json body")
         existing = AdvertisementModel.query.get(id)
