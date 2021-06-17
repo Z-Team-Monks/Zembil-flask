@@ -4,13 +4,14 @@ from flask_jwt_extended import ( jwt_required, get_jwt_identity, get_jwt)
 from marshmallow import ValidationError
 from zembil import db
 from zembil.models import UserModel, ShopModel, LocationModel, CategoryModel
-from zembil.schemas import ShopSchema, LocationSchema
+from zembil.schemas import ShopSchema, LocationSchema, TotalShopFollowerSchema
 from zembil.common.util import clean_null_terms
 
 shop_schema = ShopSchema()
 location_schema = LocationSchema()
 
 shops_schema = ShopSchema(many=True)
+shops_followers_schema = TotalShopFollowerSchema(many=True)
 
 shop_status_arguments = reqparse.RequestParser()
 shop_status_arguments.add_argument('isActive', type=bool, help="Status is required", required=True)
@@ -18,7 +19,7 @@ shop_status_arguments.add_argument('isActive', type=bool, help="Status is requir
 class Shops(Resource):
     def get(self):
         result = ShopModel.query.all()
-        return shops_schema.dump(result)
+        return shops_followers_schema.dump(result)
 
     @jwt_required()
     def post(self):

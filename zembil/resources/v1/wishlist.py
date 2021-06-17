@@ -48,10 +48,10 @@ class WishList(Resource):
     @jwt_required()
     def delete(self, id):
         userid = get_jwt_identity()
-        existing = WishListModel.query.filter_by(id=id, user_id=userid).first()
-        if existing:
-            db.session.delete(existing)
+        existing = WishListModel.query.filter_by(id=id, user_id=userid)
+        if existing.first():
+            existing.delete()
             db.session.commit()
-            return wishlist_schema.dump(existing)
+            return {"message": "deleted"}, 200
         return abort(404, message="No wishlist item found with this id!")
 

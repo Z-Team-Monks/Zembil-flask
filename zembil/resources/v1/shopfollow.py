@@ -24,18 +24,16 @@ class ShopFollowers(Resource):
             db.session.add(shopfollow)
             db.session.commit()
             return shopfollower_schema.dump(shopfollow), 201
-        return abort(409, message="User already is following this shop")
+        return abort(409, message="User is already following this shop")
 
-
-class ShopFollower(Resource):
     @jwt_required()
-    def delete(self, shopid, id):
+    def delete(self, shopid):
         user_id = get_jwt_identity()
-        existing = ShopFollowerModel.query.get(id)
-        if existing and existing.user_id == user_id:
-            db.session.delete(existing)
+        existing = ShopFollowerModel.query.filter_by(user_id=user_id, shop_id=shopid)
+        if existing.first() and existing.first().user_id == user_id:
+            existing.delete()
             db.session.commit()
             return {"message": "Successfull"}, 204
-        if existing:
-            abort(401, "Can't delete!")
-        abort(404, "Doesn't exist")
+        if existing.first():
+            abort(401, message="Can't delete!")
+        abort(404, message="Doesn't exist")

@@ -1,11 +1,12 @@
 from flask import request, current_app, jsonify
+from flask_jwt_extended.internal_utils import user_lookup
 from flask_restful import Resource, abort
 from flask_jwt_extended import ( jwt_required, get_jwt_identity)
 from marshmallow import ValidationError
 from sqlalchemy import func
 from zembil import db
 from zembil.models import (
-    ProductModel, ShopModel, CategoryModel, ReviewModel, NotificationModel
+    ProductModel, ShopModel, CategoryModel, ReviewModel, NotificationModel, UserModel
     )
 from zembil.schemas import ProductSchema, ShopProductSchema, RatingSchema
 from zembil.common.util import clean_null_terms
@@ -100,6 +101,18 @@ class Product(Resource):
             abort(403, message="Product doesn't belong to this user!")
         abort(404, message="Product doesn't exist!")
 
+    @jwt_required()
+    def delete(self, id):
+        user_id = get_jwt_identity()
+        product = ProductModel.query.filter_by(id=id)
+        if product.first() and product.first().shop.user_id == user_id:
+            product.delete()
+            db.session.commit()
+            return 204
+        if product.first():
+            abort(403, message="Product doesn't belong to this user!")
+        abort(404, message="Ad doesn't exist")
+
 class ShopProducts(Resource):
     def get(self, shop_id):
         shop = ShopModel.query.get(shop_id)
@@ -107,6 +120,15 @@ class ShopProducts(Resource):
             return shop_products_schema.dump(shop)
         abort(404, message="Shop doesn't exist!")
 
+
+class UserProducts(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.query.get(user_id)
+        shop_ids = [shop.id for shop in user.shops]
+        result = db.session.query(ProductModel).filter(ProductModel.shop_id.in_(shop_ids)).all()
+        return products_schema.dump(result)
 
 class SearchProduct(Resource):
     def get(self):

@@ -1,6 +1,8 @@
 from flask import Flask
+from flask_jwt_extended.view_decorators import jwt_required
 from flask_mail import Mail
 from flask_marshmallow import Marshmallow
+from flask_restful import abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
@@ -44,6 +46,9 @@ def create_app(config_class=Config):
         token = db.session.query(RevokedTokenModel.id).filter_by(jti=jti).scalar()
         return token is not None
 
+    @jwt.unauthorized_loader
+    def handle_no_authorization(jwt_header):
+        abort(400, message="Authorization header is missing!")
     
     app.register_blueprint(
         api_v1_bp,

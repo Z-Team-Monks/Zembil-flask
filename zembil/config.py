@@ -17,3 +17,4 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = "team.zembil@gmail.com"
     MAIL_PASSWORD = "zembiltest123"
+    PROPAGATE_EXCEPTIONS = True

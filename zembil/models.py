@@ -62,8 +62,7 @@ class ShopModel(db.Model):
     status = db.Column(db.Boolean, nullable=True)
 
     user = db.relationship('UserModel', back_populates='shops')
-    location = db.relationship(
-        'LocationModel', back_populates='shop', cascade="all,delete")
+    location = db.relationship('LocationModel', back_populates='shop', cascade="all,delete")
     category = db.relationship('CategoryModel', back_populates='shops')
     products = db.relationship('ProductModel', back_populates='shop')
     ads = db.relationship('AdvertisementModel', backref='shop', lazy=True)
@@ -157,6 +156,7 @@ class AdvertisementModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     shop_id = db.Column(db.Integer, db.ForeignKey('shop.id'), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    discount = db.Column(db.Float, nullable=False)
     start_date = db.Column(db.DateTime, nullable=True, default=None)
     end_date = db.Column(db.DateTime, nullable=True, default=None)
     is_active = db.Column(db.Boolean, nullable=False, default=False)

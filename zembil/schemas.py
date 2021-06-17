@@ -1,4 +1,3 @@
-import datetime
 import re
 from marshmallow import fields, validate, validates, ValidationError
 from zembil import ma
@@ -7,7 +6,7 @@ from zembil.models import *
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "name", "username", "password", "email", "date", "role", "phone", "shops_followed")
+        fields = ("id", "name", "username", "password", "email", "date", "role", "phone")
         model = UserModel
         ordered = True
     id = fields.Integer(dump_only=True, data_key="userId")
@@ -63,11 +62,10 @@ class CategorySchema(ma.Schema):
         ordered = True
     name = fields.String(required=True, data_key="categoryName")
 
-
 class ShopSchema(ma.Schema):
     class Meta:
         fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1",
-                  "phone_number2", "category", "image", "description", "status")
+                  "phone_number2", "category", "image", "description", "status", "followers")
         model = ShopModel
         ordered = True
     name = fields.String(required=False, data_key="shopName")
@@ -83,6 +81,7 @@ class ShopSchema(ma.Schema):
     status = fields.Boolean(dump_only=True, data_key="isActive")
 
     location = ma.Nested(LocationSchema)
+    followers = ma.Nested(UserSchema, only=['id'], many=True)
 
     @validates("phone_number1")
     @validates("phone_number2")
@@ -92,14 +91,6 @@ class ShopSchema(ma.Schema):
         if not rule.search(value):
             msg = u"Invalid mobile number."
             raise ValidationError(msg)
-
-class ShopLocationSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "longitude", "latitude", "description", "shop")
-        model = LocationModel
-        ordered = True
-    shop = ma.Nested(ShopSchema)
-
 
 class RatingSchema(ma.Schema):
     class Meta:
@@ -160,24 +151,27 @@ class ShopProductSchema(ma.Schema):
 
 class AdvertisementSchema(ma.Schema):
     class Meta:
-        fields = ("id", "shop_id", "start_date", "end_date", "description")
+        fields = ("id", "shop_id", "discount", "start_date", "end_date", "description", "shop")
     id = fields.Integer(dump_only=True)
-    shop_id = fields.Integer(data_key="shopId")
-    start_date = fields.Date(data_key="startDate")
-    end_date = fields.Date(data_key="endDate")
+    shop_id = fields.Integer(required=True, data_key="shopId")
+    start_date = fields.Date(required=True, data_key="startDate")
+    end_date = fields.Date(required=True, data_key="endDate")
     description = fields.String()
+    discount = fields.Float(required=True, )
 
-    @validates("start_date")
-    @validates("end_date")
-    def validate_date(self, value):
-        present = datetime.now()
-        if present > value:
-            raise ValidationError("Date is in the past")
+    shop = ma.Nested(ShopSchema)
 
-    @validates("end_date")
-    def validate_end_date(self, value):
-        if self.start_date > value:
-            raise ValidationError("Start date is behind end date")
+
+    # @validates("start_date")
+    # def validate_date(self, value):
+    #     present = datetime.now()
+    #     if present > value:
+    #         raise ValidationError("Date is in the past")
+
+    # @validates("end_date")
+    # def validate_end_date(self, value):
+    #     if self.start_date > value:
+    #         raise ValidationError("Start date is behind end date")
 
 
 class ReviewSchema(ma.Schema):
@@ -242,13 +236,16 @@ class ShopFollowerSchema(ma.Schema):
 
 class TotalShopFollowerSchema(ma.Schema):
     class Meta:
-        fields = ("id", "building_name", "phone_number1", "phone_number2",
-                  "description", "shoplikes")
+        fields = ("id", "name", "user_id", "location", "location_id", "category_id", "building_name", "phone_number1",
+                  "phone_number2", "category", "image", "description", "status", "followers")
         model = ShopModel
         ordered = True
     id = fields.Integer(data_key="shopId")
     user = ma.Nested(UserSchema)
-    shoplikes = ma.List(ma.Nested(ShopFollowerSchema))
+    category = fields.Pluck(CategorySchema, "name", dump_only=True)
+    location = ma.Nested(LocationSchema)
+    followers = ma.Nested(ShopFollowerSchema, only=['user_id'], many=True)
+
 
 
 class NotificationSchema(ma.Schema):

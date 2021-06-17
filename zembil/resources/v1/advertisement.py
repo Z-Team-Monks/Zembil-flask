@@ -62,10 +62,10 @@ class Advertisement(Resource):
         role = get_jwt()['role']
         if role == 'user':
             abort(403, message="Requires admin privelege")
-        ad = AdvertisementModel.query.get(id)
-        if ad:
-            db.session.delete(ad)
+        ad = AdvertisementModel.query.filter_by(id=id)
+        if ad.first():
+            ad.delete()
             db.session.commit()
-            return 204
+            return 204      
         abort(404, message="Ad doesn't exist")
         

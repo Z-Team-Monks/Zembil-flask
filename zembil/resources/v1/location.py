@@ -3,11 +3,12 @@ from flask_restful import Resource, abort
 from sqlalchemy import func
 from marshmallow import ValidationError
 from zembil import db
-from zembil.models import LocationModel
-from zembil.schemas import LocationSchema, ShopLocationSchema
+from zembil.models import LocationModel, ShopModel
+from zembil.schemas import LocationSchema, ShopSchema
 
 location_schema = LocationSchema()
-locations_schema = ShopLocationSchema(many=True)
+locations_schema = LocationSchema(many=True)
+shops_schema = ShopSchema(many=True)
 
 class Locations(Resource):
     def get(self):
@@ -60,5 +61,7 @@ class LocationNearMe(Resource):
                 * func.cos(func.radians(LocationModel.latitude)) \
                 * func.cos(func.radians(LocationModel.longitude) \
                 - (func.radians(longitude)))) * 6371 <= radius)
-            return locations_schema.dump(locations)
+            locations_id = [location.id for location in locations.all()]
+            result = db.session.query(ShopModel).filter(ShopModel.location_id.in_(locations_id)).all()
+            return shops_schema.dump(result)
         abort(400, message="No shops found near your location")
